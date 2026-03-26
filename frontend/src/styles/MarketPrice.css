@@ -1,0 +1,23 @@
+/* MarketPrice Page Specific Styling */
+
+.data-page__header--market {
+  background: linear-gradient(135deg, var(--accent-500) 0%, var(--accent-600) 100%);
+}
+
+.data-page__header--market .data-page__header-title {
+  color: white;
+}
+
+.data-page__header--market .data-page__header-subtitle {
+  color: var(--accent-100);
+}
+
+.data-page__record-icon--market {
+  background: linear-gradient(135deg, var(--accent-100), var(--accent-50));
+  color: var(--accent-600);
+}
+
+.data-page__record-amount--market {
+  color: var(--accent-600);
+  font-weight: 700;
+}

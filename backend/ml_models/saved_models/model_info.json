@@ -1,0 +1,32 @@
+{
+  "train_accuracy": 1.0,
+  "test_accuracy": 1.0,
+  "total_examples": 760,
+  "training_examples": 608,
+  "test_examples": 152,
+  "intents": [
+    "expense",
+    "income",
+    "market",
+    "mentor",
+    "payment",
+    "profit",
+    "sales",
+    "scheme"
+  ],
+  "vectorizer_features": 500,
+  "ngram_range": [
+    1,
+    2
+  ],
+  "intent_distribution": {
+    "sales": 120,
+    "income": 120,
+    "expense": 120,
+    "profit": 80,
+    "scheme": 80,
+    "payment": 80,
+    "market": 80,
+    "mentor": 80
+  }
+}
