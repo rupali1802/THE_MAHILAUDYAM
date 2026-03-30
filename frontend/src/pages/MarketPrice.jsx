@@ -45,17 +45,56 @@ export default function MarketPrice() {
   };
 
   const getUnitLabel = (unit) => {
+    if (!unit) return '';
     const unitMap = {
-      'kg': t('sales.unitOptions.kilo'),
-      'g': 'g',
-      'liter': t('sales.unitOptions.liter'),
-      'piece': t('sales.unitOptions.piece'),
-      'dozen': t('sales.unitOptions.dozen'),
+      'kg': t('market.units.kg'),
+      'g': t('market.units.g'),
+      'liter': t('market.units.liter'),
+      'litre': t('market.units.liter'),
+      'piece': t('market.units.piece'),
+      'dozen': t('market.units.dozen'),
       'ton': 'ton',
       'quintal': 'quintal',
-      'litre': t('sales.unitOptions.liter'),
     };
     return unitMap[unit?.toLowerCase()] || unit;
+  };
+
+  const getCommodityName = (commodityName) => {
+    if (!commodityName) return '';
+    const comKey = commodityName.toLowerCase();
+    const comMap = {
+      'banana': 'banana',
+      'chili': 'chili',
+      'chili powder': 'chili',
+      'coconut': 'coconut',
+      'coriander': 'coriander',
+      'coriander powder': 'coriander',
+      'ghee': 'ghee',
+      'mango': 'mango',
+      'milk': 'milk',
+      'onion': 'onion',
+    };
+    const key = comMap[comKey];
+    if (key) return t(`market.commodities.${key}`);
+    return commodityName;
+  };
+
+  const getMarketName = (marketLocation) => {
+    if (!marketLocation) return '';
+    const marKey = marketLocation.toLowerCase().replace(/\s+/g, '_');
+    const marMap = {
+      'chennai_fruit_market': 'chennai',
+      'guntur_mandi': 'guntur',
+      'kerala_mandi': 'kerala',
+      'rajasthan_mandi': 'rajasthan',
+      'tamil_nadu_dairy': 'tamil_dairy',
+      'madurai_fruit_market': 'madurai',
+      'delhi_dairy': 'delhi_dairy',
+      'delhi_mandi': 'delhi_mandi',
+    };
+    const key = marMap[marKey];
+    if (key) return t(`market.markets.${key}`);
+    return marketLocation;
   };
 
   const trendColor = { up: '#10b981', down: '#ef4444', stable: '#f59e0b' };
@@ -178,10 +217,10 @@ export default function MarketPrice() {
                     </div>
                     <div>
                       <h3 style={{ margin: '0', fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--gray-900)' }}>
-                        {p.commodity_name}
+                        {getCommodityName(p.commodity_name)}
                       </h3>
                       <p style={{ margin: '4px 0 0', fontSize: 'var(--font-sm)', color: 'var(--gray-600)' }}>
-                        {p.market_location}
+                        {getMarketName(p.market_location)}
                       </p>
                     </div>
                   </div>
@@ -219,7 +258,7 @@ export default function MarketPrice() {
 
                 {/* Date */}
                 <p style={{ margin: '12px 0 0', fontSize: 'var(--font-xs)', color: 'var(--gray-500)', fontStyle: 'italic' }}>
-                  {t('market.updated')}: {formatDateForLanguage(p.market_date, lang)}
+                  {t('market.updated')} {formatDateForLanguage(p.market_date, lang)}
                 </p>
               </div>
             );

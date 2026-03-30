@@ -5,10 +5,10 @@ import { Users, MessageCircle, Send, ArrowLeft, Star, Briefcase, Loader2, MapPin
 import '../styles/Mentor.css';
 
 const SAMPLE_MENTORS = [
-  { id: 1, name: 'Priya Subramaniam', specialization: 'Handicraft & Export', expertise: 'Handicraft, Marketing, Export', experience_years: 12, rating: 4.8, availability: 'available', languages_spoken: 'Tamil, English', bio: 'Expert in handicraft business with 12 years of experience. Helped 200+ women entrepreneurs.' },
-  { id: 2, name: 'Meena Krishnan', specialization: 'Dairy & Agriculture', expertise: 'Dairy, Agriculture, SHG', experience_years: 8, rating: 4.5, availability: 'available', languages_spoken: 'Tamil, Hindi', bio: 'Former NABARD officer. Specialist in dairy business and self-help groups.' },
-  { id: 3, name: 'Savita Patel', specialization: 'Food Processing', expertise: 'Food processing, FSSAI, Packaging', experience_years: 15, rating: 4.9, availability: 'available', languages_spoken: 'Hindi, English', bio: 'Food processing expert. Helped set up 50+ micro food enterprises.' },
-  { id: 4, name: 'Lakshmi Rajan', specialization: 'Digital Marketing', expertise: 'Social media, Online selling, Digital literacy', experience_years: 6, rating: 4.6, availability: 'busy', languages_spoken: 'Tamil, English', bio: 'Digital marketing specialist helping rural entrepreneurs sell online.' },
+  { id: 1, name: 'Priya Subramaniam', specializationKey: 'organic', expertiseKey: 'handicraft', experience_years: 12, rating: 4.8, availability: 'available', languages_spoken: 'Tamil, English', bioKey: 'priya' },
+  { id: 2, name: 'Meena Krishnan', specializationKey: 'dairy', expertiseKey: 'dairy', experience_years: 8, rating: 4.5, availability: 'available', languages_spoken: 'Tamil, Hindi', bioKey: 'meena' },
+  { id: 3, name: 'Savita Patel', specializationKey: 'food', expertiseKey: 'foodProcessing', experience_years: 15, rating: 4.9, availability: 'available', languages_spoken: 'Hindi, English', bioKey: 'savita' },
+  { id: 4, name: 'Lakshmi Rajan', specializationKey: 'digital', expertiseKey: 'digitalMarketing', experience_years: 6, rating: 4.6, availability: 'busy', languages_spoken: 'Tamil, English', bioKey: 'lakshmi' },
 ];
 
 export default function Mentor() {
@@ -65,7 +65,7 @@ export default function Mentor() {
           </div>
           <div style={{ flex: 1 }}>
             <h3 style={{ margin: '0', fontSize: 'var(--font-lg)', fontWeight: 700 }}>{selected.name}</h3>
-            <p style={{ margin: '4px 0 0', fontSize: 'var(--font-sm)', opacity: 0.9 }}>{selected.specialization}</p>
+            <p style={{ margin: '4px 0 0', fontSize: 'var(--font-sm)', opacity: 0.9 }}>{t(`mentor.specializations.${selected.specializationKey}`)}</p>
           </div>
         </div>
 
@@ -212,7 +212,7 @@ export default function Mentor() {
                   <div style={{ flex: 1 }}>
                     <h3 style={{ margin: '0', fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--gray-900)' }}>{m.name}</h3>
                     <p style={{ margin: '4px 0 0', fontSize: 'var(--font-sm)', color: '#06b6d4', fontWeight: 600 }}>
-                      {m.specialization}
+                      {t(`mentor.specializations.${m.specializationKey}`)}
                     </p>
                   </div>
                   <div 
@@ -232,16 +232,16 @@ export default function Mentor() {
 
                 {/* Expertise */}
                 <p style={{ margin: '0 0 12px', fontSize: 'var(--font-sm)', color: 'var(--gray-700)', lineHeight: '1.5' }}>
-                  {m.expertise}
+                  {t(`mentor.expertiseAreas.${m.expertiseKey}`)}
                 </p>
 
                 {/* Metadata */}
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                   <div style={{ background: 'rgba(249, 115, 22, 0.1)', paddingColor: '#f97316', padding: '6px 12px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: 'var(--font-xs)', color: '#d97706' }}>
-                    <Star size={14} style={{ color: '#f97316' }} /> {m.rating?.toFixed(1) || t('common.notAvailable')}
+                    <Star size={14} style={{ color: '#f97316' }} /> {(typeof m.rating === 'string' ? parseFloat(m.rating) : m.rating)?.toFixed(1) || t('common.notAvailable')}
                   </div>
                   <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '6px 12px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: 'var(--font-xs)', color: '#1e40af' }}>
-                    <Briefcase size={14} /> {m.experience_years}y
+                    <Briefcase size={14} /> {m.experience_years}{t('mentor.years')}
                   </div>
                   <div style={{ background: 'rgba(107, 114, 128, 0.1)', padding: '6px 12px', borderRadius: 'var(--radius-md)', fontSize: 'var(--font-xs)', color: '#374151' }}>
                     {m.languages_spoken}
@@ -249,9 +249,9 @@ export default function Mentor() {
                 </div>
 
                 {/* Bio */}
-                {m.bio && (
+                {m.bioKey && (
                   <p style={{ margin: '0 0 12px', fontSize: 'var(--font-sm)', color: 'var(--gray-600)', lineHeight: '1.6', fontStyle: 'italic' }}>
-                    "{m.bio}"
+                    "{t(`mentor.mentorBios.${m.bioKey}`)}"
                   </p>
                 )}
 

@@ -59,7 +59,7 @@ WSGI_APPLICATION = 'mahila_udyam_backend.wsgi.application'
 # To use MySQL, set USE_MYSQL=True environment variable and ensure MySQL is running
 import os
 USE_MYSQL = os.getenv('USE_MYSQL', 'False') == 'True'
-USE_MYSQL = False  # Force SQLite for now
+USE_MYSQL = False  # SQLite for dev (MySQL requires 8+ but server is 5.7.44)
 
 if USE_MYSQL:
     # MySQL configuration

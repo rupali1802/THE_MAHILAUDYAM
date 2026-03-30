@@ -1,9 +1,7 @@
 {
-  "train_accuracy": 1.0,
-  "test_accuracy": 1.0,
-  "total_examples": 760,
-  "training_examples": 608,
-  "test_examples": 152,
+  "train_accuracy": 0.9807692307692307,
+  "test_accuracy": 0.8076923076923077,
+  "total_examples": 260,
   "intents": [
     "expense",
     "income",
@@ -12,21 +10,12 @@
     "payment",
     "profit",
     "sales",
-    "scheme"
+    "schemes",
+    "training"
   ],
   "vectorizer_features": 500,
   "ngram_range": [
     1,
     2
-  ],
-  "intent_distribution": {
-    "sales": 120,
-    "income": 120,
-    "expense": 120,
-    "profit": 80,
-    "scheme": 80,
-    "payment": 80,
-    "market": 80,
-    "mentor": 80
-  }
+  ]
 }

@@ -1,7 +1,7 @@
 import { getDeviceId } from '../utils/device';
 
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
-const TIMEOUT = 10000;
+const TIMEOUT = 30000;
 
 /**
  * Helper to build query string from params object

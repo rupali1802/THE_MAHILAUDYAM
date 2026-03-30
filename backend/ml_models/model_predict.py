@@ -37,6 +37,7 @@ class IntentPredictor:
             return False
 
         try:
+            # Try standard pickle loading
             with open(model_path, 'rb') as f:
                 self._model = pickle.load(f)
             with open(vectorizer_path, 'rb') as f:
@@ -45,8 +46,29 @@ class IntentPredictor:
                 with open(info_path) as f:
                     self._model_info = json.load(f)
             return True
+        except (ImportError, AttributeError, ModuleNotFoundError) as e:
+            # Handle numpy version compatibility issues
+            print(f"⚠️  Pickle load error (likely numpy version issue): {e}")
+            print("🔧 Attempting to fix numpy compatibility...")
+            try:
+                import pickle5 as pkl
+                print("📦 Using pickle5 for legacy compatibility...")
+                with open(model_path, 'rb') as f:
+                    self._model = pkl.load(f)
+                with open(vectorizer_path, 'rb') as f:
+                    self._vectorizer = pkl.load(f)
+                if os.path.exists(info_path):
+                    with open(info_path) as f:
+                        self._model_info = json.load(f)
+                return True
+            except ImportError:
+                print("❌ pickle5 not available, using rule-based fallback only")
+                return False
+            except Exception as e2:
+                print(f"❌ pickle5 also failed: {e2}")
+                return False
         except Exception as e:
-            print(f"Error loading model: {e}")
+            print(f"❌ Error loading model: {e}")
             return False
 
     def preprocess(self, text):
