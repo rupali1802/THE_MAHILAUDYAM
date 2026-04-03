@@ -26,6 +26,41 @@
   --space-xl: 32px;
 }
 
+/* Animations */
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  40% {
+    transform: translateY(-8px);
+    opacity: 0.8;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1.4s infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Main Page Container */
 .mentor-page {
   display: flex;
