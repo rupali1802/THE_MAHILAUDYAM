@@ -9,7 +9,7 @@
 - 🎤 **Voice Assistant** - Speech recognition & synthesis in Tamil, Hindi, English
 - 🌍 **Multilingual** - Pure Tamil (primary), Hindi, English with strict language purity
 
-Built for **Villupuram Hackathon 2026** | **GitHub**: [rupali1802/THE_MAHILAUDYAM](https://github.com/rupali1802/THE_MAHILAUDYAM)
+**GitHub**: [rupali1802/THE_MAHILAUDYAM](https://github.com/rupali1802/THE_MAHILAUDYAM)
 
 ---
 
@@ -265,7 +265,7 @@ Backend enforces pure-language responses through:
 
 ## 📄 License
 
-**Villupuram Hackathon 2026** | Open source for community benefit.
+Open source for community benefit.
 
 ---
 

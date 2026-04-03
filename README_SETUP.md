@@ -682,7 +682,7 @@ The application fully supports:
 
 ## 📄 License
 
-Created for **Villupuram Hackathon 2026**
+Open source for community benefit
 
 ---
 
