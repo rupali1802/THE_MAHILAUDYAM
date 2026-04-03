@@ -1,13 +1,13 @@
 # 🚀 MahilaUdyam - Women Entrepreneurs Empowerment Platform
 
-**MahilaUdyam** is a **Tamil-first mobile application** designed to empower women entrepreneurs with:
+**MahilaUdyam** is a **voice-first AI platform for women entrepreneurs** with complete multilingual support:
 
-- 💬 **AI Mentor Chat** - Voice/text mentor with income-aware guidance
+- 🎤 **Voice-First Interface** - Speak in Tamil, Hindi, or English - no typing needed
+- 💬 **AI Mentor Chat** - Smart voice/text mentor with income-aware guidance
 - 📊 **Financial Dashboard** - Income/expense tracking and profit analysis  
-- 📈 **Market Price Tracker** - Real-time commodity prices (27+ items)
+- 📈 **Market Price Tracker** - Real-time commodity prices (27+ items) accessible by voice
 - 📋 **Government Schemes** - Eligibility checker for 10+ women entrepreneurship schemes
-- 🎤 **Voice Assistant** - Speech recognition & synthesis in Tamil, Hindi, English
-- 🌍 **Multilingual** - Pure Tamil (primary), Hindi, English with strict language purity
+- 🌍 **Multilingual AI** - Pure Tamil, Hindi, English with strict language purity
 
 **GitHub**: [rupali1802/THE_MAHILAUDYAM](https://github.com/rupali1802/THE_MAHILAUDYAM)
 
@@ -68,31 +68,37 @@ Open **http://localhost:3002** → Click "Mentor" → Select Tamil (தமிழ
 
 ## 🎯 Key Features
 
-### 1. **Mentor Chat System** (Main Feature)
+### 1. **Voice-First AI Interface** (Main Feature)
+- Speak in Tamil, Hindi, or English - no typing required
+- AI automatically detects your language
+- Voice responses in your selected language
+- Accessible even for low-literacy users
+
+### 2. **Mentor Chat System**
 - 4-stage flow: Select Mentor → Choose Language → Pick Input Mode → Chat
 - 4 AI Mentors with expertise (Dairy, Textile, Food Processing, Retail)
 - **WhatsApp-style UI** with suggestion chips & animated typing indicator
-- Voice recognition in Tamil (ta-IN), Hindi (hi-IN), English (en-US)
-- AI respects income/expense context from dashboard
+- Income/expense context-aware responses
 
-### 2. **Market Price Tracking**
+### 3. **Market Price Tracking**
 - 27 commodities with real-time prices
+- Voice-accessible price queries
 - Price trends (↑ up, ↓ down, → stable)
 - Market analysis and recommendations
 
-### 3. **Government Schemes**
+### 4. **Government Schemes**
 - 10+ women entrepreneurship schemes
 - Eligibility checker with loan amounts
 - Subsidy calculator
 - **Pure Tamil UI**: All scheme names & descriptions translated
 
-### 4. **Income/Expense Dashboard**
+### 5. **Income/Expense Dashboard**
 - Daily financial tracking
 - Profit calculation
 - Monthly analysis charts
 - Context for AI mentor guidance
 
-### 5. **Voice Assistant**
+### 6. **Voice Assistant**
 - Web Speech API (browser-native, no external API)
 - Speech recognition in Tamil/Hindi/English
 - Auto text-to-speech responses in selected language
@@ -119,7 +125,7 @@ Open **http://localhost:3002** → Click "Mentor" → Select Tamil (தமிழ
 - **Backend Endpoints**: 15+ REST APIs
 - **React Components**: 20+ reusable components
 - **Database Models**: 8 core models
-- **Languages Supported**: Tamil (Primary), Hindi, English
+- **Languages Supported**: Tamil, Hindi, English (Full voice & text support)
 - **AI Mentor Mentors**: 4 specialized mentors
 - **Market Commodities**: 27 items tracked
 - **Government Schemes**: 10 schemes indexed
@@ -218,20 +224,22 @@ MahilaUdyam/
 
 ---
 
-## 🌍 Language Support
+## 🌍 Multilingual & Voice-First
 
-**Strict Language Purity** - No mixing languages:
+**Equal support for all languages:**
 
 | Language | Code | Support | Status |
 |----------|------|---------|--------|
-| தமிழ் (Tamil) | `ta` | Full | ✅ PRIMARY |
-| हिंदी (Hindi) | `hi` | Full | ✅ COMPLETE |
-| English | `en` | Full | ✅ COMPLETE |
+| தமிழ் (Tamil) | `ta` | Full | ✅ Complete |
+| हिंदी (Hindi) | `hi` | Full | ✅ Complete |
+| English | `en` | Full | ✅ Complete |
 
-Backend enforces pure-language responses through:
-- Character encoding detection (Tamil: 0x0B80-0x0BFF, Devanagari: 0x0900-0x097F)
-- Gemini API initialization with strict language-only prompts
-- Per-message language validation
+**Voice-First Design Principles:**
+- Speak in any language, AI responds in the same language
+- Web Speech API for voice recognition & synthesis
+- Accessible for users with low literacy levels
+- No typing required - everything accessible by voice
+- Strict language purity through character encoding detection & Gemini API validation
 
 ---
 

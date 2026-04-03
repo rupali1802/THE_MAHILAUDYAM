@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**MahilaUdyam** is a mobile-first platform empowering women entrepreneurs with comprehensive financial and business management tools. The platform offers real-time market prices, government schemes information, expert mentorship, and a voice-enabled AI assistant (SAKHI) available in Tamil, Hindi, and English.
+**MahilaUdyam** is a voice-first AI platform for women entrepreneurs with complete multilingual support (Tamil, Hindi, English). The platform offers an intelligent voice-enabled AI assistant, real-time market prices, government schemes information, expert mentorship, income/expense tracking, and comprehensive business management tools.
 
 ### Key Features
 - 📊 Financial tracking (income, expenses, profit analysis)

@@ -1,16 +1,16 @@
 # 🚀 MahilaUdyam - Women Entrepreneur Platform
 
-**MahilaUdyam** is a **Tamil-first mobile platform** empowering women entrepreneurs with financial tracking, sales management, profit analysis, real-time market prices, government schemes, AI mentor guidance, and voice-enabled assistance.
+**MahilaUdyam** is a **voice-first AI platform for women entrepreneurs** with complete multilingual support, featuring smart financial tracking, AI mentor guidance, real-time market prices, government schemes, and voice-enabled assistance in Tamil, Hindi, and English.
 
 ### 🌟 Key Features
 
-✅ **Multilingual Support**: Pure Tamil, Hindi, and English (strict no language mixing)  
+✅ **Voice-First AI Platform**: Speak in Tamil, Hindi, or English - no typing required  
+✅ **Multilingual Support**: Complete support for Tamil, Hindi, English with strict language purity  
 ✅ **AI Mentor Chat**: Smart voice/text mentor with income-aware advice  
-✅ **Market Price Tracking**: Real-time commodity prices (27+ items)  
+✅ **Market Price Tracking**: Real-time commodity prices (27+ items), voice-accessible  
 ✅ **Government Schemes**: 10+ women entrepreneurship schemes with eligibility info  
 ✅ **Income/Expense Tracking**: Daily financial management  
-✅ **Voice Assistant**: Web Speech API for Tamil voice recognition  
-✅ **Responsive Design**: Mobile-first, WhatsApp-style UI  
+✅ **Accessible Design**: Low-literacy accessible through voice interface, responsive mobile-first UI  
 
 ---
 
@@ -559,21 +559,22 @@ MahilaUdyam/
 
 ---
 
-## 🌍 Language Support
+## 🌍 Multilingual Support
 
-The application fully supports:
+The application fully supports all three languages equally:
 
 | Language | Code | Status |
 |----------|------|--------|
-| தமிழ் (Tamil) | `ta` | ✅ Primary |
+| தமிழ் (Tamil) | `ta` | ✅ Full Support |
 | हिंदी (Hindi) | `hi` | ✅ Full Support |
 | English | `en` | ✅ Full Support |
 
-**Strict Language Purity:**
-- Backend detects and enforces pure language responses
-- Gemini API initialized with strict language-only prompts
-- Frontend prevents accidental language mixing
-- No "Hinglish" or "Tanglish" - pure languages only
+**Voice-First, Multilingual Approach:**
+- All features accessible via voice in each language
+- Backend auto-detects user's language
+- AI responds in user's selected language only
+- Strict language purity (no mixed "Hinglish" or "Tanglish")
+- Accessible for low-literacy users through voice interface
 
 ---
 
