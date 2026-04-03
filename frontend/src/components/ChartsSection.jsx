@@ -15,7 +15,7 @@ export default function ChartsSection({ summary }) {
   const expenseData = [
     { name: t('dashboard.expenseCategories') + ' 1', value: (summary?.monthly_expense || 0) * 0.4 },
     { name: t('dashboard.expenseCategories') + ' 2', value: (summary?.monthly_expense || 0) * 0.35 },
-    { name: t('common.other'), value: (summary?.monthly_expense || 0) * 0.25 }
+    { name: t('common.categories.other'), value: (summary?.monthly_expense || 0) * 0.25 }
   ];
 
   // Line chart data for sales trend
