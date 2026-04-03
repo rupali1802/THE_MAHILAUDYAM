@@ -522,44 +522,75 @@ class MarketAnalysisView(APIView):
                     if prices.exists():
                         market_data = list(prices)
             
-            # CRITICAL: Get Gemini analysis with STRONG language enforcement
+            # ✅ CRITICAL: Initialize language-specific fallback FIRST
+            fallback_analysis = None
+            if commodity:
+                fallback_analysis = MarketAnalyzer.analyze_profit_potential(commodity, language=language)
+            else:
+                fallback_analysis = MarketAnalyzer.generate_real_time_analysis(
+                    query=query,
+                    commodity=None,
+                    language=language
+                )
+            
+            print(f"📚 Pre-loaded fallback in {language}")
+            
+            # ✅ CRITICAL: Get Gemini analysis with BRUTAL language enforcement
+            gemini_attempts = 0
+            max_gemini_attempts = 3
+            gemini_success = False
+            
             if GeminiHelper.is_available():
-                try:
-                    print(f"🤖 Calling Gemini with language: {language}")
-                    # Use voice response for better market guidance with STRICT language
-                    voice_analysis = GeminiHelper.generate_voice_response(
-                        user_query=query,
-                        language=language,
-                        extracted_data={'commodity': commodity},
-                        intent='market'
-                    )
-                    if voice_analysis:
-                        # Validate language - if we requested Tamil/Hindi but got English, reject it
-                        if language in ['ta', 'hi']:
-                            # Check if response is mostly English (if it contains too many English letters)
-                            english_ratio = sum(1 for c in voice_analysis if ord(c) < 128) / max(len(voice_analysis), 1)
-                            print(f"📊 English character ratio: {english_ratio:.2%}")
-                            if english_ratio > 0.6:  # More than 60% English characters = reject
-                                print(f"⚠️ Gemini returned mostly English for {language}, using fallback")
-                            else:
-                                analysis = voice_analysis
-                                print(f"✅ Gemini response in {language}: {voice_analysis[:60]}")
-                        else:
-                            analysis = voice_analysis
-                            print(f"✅ Gemini response in {language}: {voice_analysis[:60]}")
-                except Exception as e:
-                    print(f"Gemini voice analysis failed: {str(e)}")
-                    # Fall back to simple enhancement
+                while gemini_attempts < max_gemini_attempts and not gemini_success:
+                    gemini_attempts += 1
                     try:
-                        enhanced_analysis = GeminiHelper.enhance_response(
-                            text=analysis,
+                        print(f"\n🤖 Gemini attempt #{gemini_attempts} with language: {language}")
+                        # Use voice response for better market guidance with STRICT language
+                        voice_analysis = GeminiHelper.generate_voice_response(
+                            user_query=query,
                             language=language,
-                            context=f"Market analysis for: {query}"
+                            extracted_data={'commodity': commodity},
+                            intent='market'
                         )
-                        if enhanced_analysis:
-                            analysis = enhanced_analysis
-                    except:
-                        pass
+                        if voice_analysis:
+                            # ✅ CRITICAL: Detect actual language of response
+                            from ml_models.language_detection import LanguageDetector
+                            detected_response_lang = LanguageDetector.detect(voice_analysis)
+                            print(f"📊 Response detection: Requested={language}, Detected={detected_response_lang}")
+                            
+                            # Only accept if language matches
+                            if detected_response_lang == language:
+                                analysis = voice_analysis
+                                gemini_success = True
+                                print(f"✅ Gemini OK - response in {language}: {voice_analysis[:80]}")
+                            else:
+                                # Language mismatch - log and retry
+                                english_ratio = sum(1 for c in voice_analysis if ord(c) < 128) / max(len(voice_analysis), 1)
+                                print(f"⚠️ Language mismatch! Requested {language}, detected {detected_response_lang}")
+                                print(f"   ASCII ratio: {english_ratio:.1%}")
+                                if gemini_attempts < max_gemini_attempts:
+                                    print(f"   Retrying (attempt {gemini_attempts + 1}/{max_gemini_attempts})...")
+                                    # Wait before retry
+                                    import time
+                                    time.sleep(0.5)
+                                else:
+                                    print(f"   Max retries reached - forcing fallback")
+                        else:
+                            print(f"❌ Gemini returned empty response")
+                            if gemini_attempts < max_gemini_attempts:
+                                print(f"   Retrying (attempt {gemini_attempts + 1}/{max_gemini_attempts})...")
+                    except Exception as e:
+                        print(f"❌ Gemini attempt #{gemini_attempts} failed: {str(e)}")
+                        if gemini_attempts < max_gemini_attempts:
+                            print(f"   Retrying (attempt {gemini_attempts + 1}/{max_gemini_attempts})...")
+                        else:
+                            print(f"   Max retries exhausted")
+            
+            # ✅ CRITICAL: If Gemini fails OR returns wrong language, USE FALLBACK
+            if not gemini_success:
+                print(f"\n🔴 FORCING FALLBACK: Using MarketAnalyzer in {language}")
+                analysis = fallback_analysis
+                print(f"✅ Using {language} analysis (first 100 chars): {analysis[:100] if analysis else 'EMPTY'}")
             
             print(f"📤 Returning analysis in {language}: {analysis[:60] if analysis else 'None'}")
             

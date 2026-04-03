@@ -232,29 +232,57 @@ Your response in {lang_name} only:"""
             }
             lang_name = lang_names.get(language, language)
             
+            # ✅ ULTRA-BRUTAL language enforcement
+            if language == 'hi':
+                language_enforce = """🔴 अनिवार्य भाषा नियम (LANGUAGE MUST BE HINDI):
+आपका संपूर्ण उत्तर 100% हिंदी में होना चाहिए। 
+- पहला शब्द हिंदी में होना चाहिए
+- आखिरी शब्द हिंदी में होना चाहिए
+- सभी शब्द हिंदी में होने चाहिए
+- अंग्रेजी शब्द बिल्कुल न लिखें
+- संख्या को छोड़कर (₹, 1, 2, 3...) सब कुछ हिंदी में"""
+            elif language == 'ta':
+                language_enforce = """🔴 கட்டாய மொழி விதி (LANGUAGE MUST BE TAMIL):
+உங்கள் முழு பதிலும் 100% தமிழ் மொழியில் இருக்க வேண்டும்.
+- முதல் வார்த்தை தமிழ் மொழியில் இருக்க வேண்டும்
+- கடைசி வார்த்தை தமிழ் மொழியில் இருக்க வேண்டும்
+- அனைத்து வார்த்தைகள் தமிழ் மொழியில் இருக்க வேண்டும்
+- ஆங்கில வார்த்தைகளை எழுத வேண்டாம்
+- எண்களைத் தவிர (₹, 1, 2, 3...) அனைத்தும் தமிழ் மொழியில்"""
+            else:
+                language_enforce = """🔴 MANDATORY LANGUAGE RULE (LANGUAGE MUST BE ENGLISH):
+Your entire response must be 100% in English.
+- First word must be in English
+- Last word must be in English
+- All words must be in English
+- Do NOT write any words in Hindi/Tamil
+- Except for numbers (₹, 1, 2, 3...) everything must be in English"""
+            
             prompt = f"""LANGUAGE: {lang_name}
 
 {instruction}
+
+{language_enforce}
 
 {context_str}
 
 User Query: {user_query}
 
----RESPONSE RULES (ABSOLUTE)---
-✓ Respond ONLY in {lang_name}
-✓ Answer ONLY the {intent} question asked
-✓ Do NOT add unrelated information
-✓ Do NOT suggest other topics
-✓ Keep response 2-3 sentences (voice-friendly)
-✓ Be direct and helpful
-✓ NO mixing languages
-✓ NO English if responding in Hindi/Tamil
-✓ NO Hindi if responding in English/Tamil  
-✓ NO Tamil if responding in English/Hindi
+---RESPONSE RULES (ABSOLUTE - YOU MUST FOLLOW)---
+1️⃣ Respond ONLY in {lang_name}
+2️⃣ Every single character must be in {lang_name}
+3️⃣ Answer the {intent} question clearly
+4️⃣ Keep response 2-4 sentences (voice-friendly)
+5️⃣ NO mixing languages whatsoever
+6️⃣ NO English if responding in Hindi
+7️⃣ NO English if responding in Tamil
+8️⃣ NO Hindi in English/Tamil responses
+9️⃣ NO Tamil in English/Hindi responses
+🔟 Be direct and helpful
 
-Your response in {lang_name} only - FOCUSED ON THE {intent.upper()} QUESTION:"""
+START YOUR RESPONSE IMMEDIATELY IN {lang_name}:"""
             
-            logger.debug(f"Generating voice response for intent '{intent}' with strict context enforcement")
+            logger.debug(f"Generating voice response for intent '{intent}' with EXTREME language enforcement")
             response = model.generate_content(prompt)
             
             if response.text:

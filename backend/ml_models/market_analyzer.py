@@ -422,82 +422,134 @@ class MarketAnalyzer:
     
     @staticmethod
     def _generate_hindi_analysis(commodity_name, product_info):
-        """Generate analysis in Hindi"""
+        """Generate PURE Hindi analysis (NO English mixed)"""
         commodity_hi = product_info.get('name_hi', commodity_name)
         
-        analysis_text = f"""
-📊 {commodity_hi.upper()} KE LIYE BAZAAR VISHLESHAN
+        # Pure Hindi translations for all fields
+        demand_hi = {
+            'High': 'अधिक',
+            'Medium': 'मध्यम',
+            'Low': 'कम',
+            'high': 'अधिक',
+            'medium': 'मध्यम',
+            'low': 'कम'
+        }
+        
+        competition_hi = {
+            'High': 'अधिक',
+            'Medium': 'मध्यम',
+            'Low': 'कम',
+            'high': 'अधिक',
+            'medium': 'मध्यम',
+            'low': 'कम'
+        }
+        
+        category_hi = {
+            'agriculture': 'कृषि',
+            'fruits': 'फल',
+            'dairy': 'डेयरी',
+            'spices': 'मसाले',
+            'handmade': 'हस्तशिल्प'
+        }
+        
+        demand_text = demand_hi.get(product_info['demand'], product_info['demand'])
+        competition_text = competition_hi.get(product_info['competition'], product_info['competition'])
+        category_text = category_hi.get(product_info['category'].lower(), product_info['category'])
+        
+        # ✅ 100% PURE HINDI - NO ENGLISH WORDS
+        analysis_text = f"""📊 {commodity_hi.upper()} का बाजार विश्लेषण
 
-🏭 **Vastu Ka Prakaar**: {product_info['category'].title()}
-📈 **Demand Ka Sthar**: {product_info['demand']}
-🔄 **Competition**: {product_info['competition']}
-💰 **Munafa Ka Hisaab**: {product_info['profit_margin']}
-📅 **Peak Season**: {product_info['peak_season']}
-⏱️ **Shelf Life**: {product_info['shelf_life']}
-🏪 **Storage Cost**: {product_info['storage_cost']}
-💵 **Alag Mulya**: ₹{product_info['avg_price']} per {product_info['unit']}
+🏭 वस्तु की श्रेणी: {category_text}
+📈 माँग का स्तर: {demand_text}
+🔄 प्रतियोगिता: {competition_text}
+💰 लाभ का अनुमान: {product_info['profit_margin']}
+📅 शीर्ष मौसम: {product_info['peak_season']}
+💵 औसत मूल्य: ₹{product_info['avg_price']} प्रति {product_info['unit']}
 
-**KHAAS INSIGHT AUR SALAH**:
+🔍 महत्वपूर्ण सुझाव:
 
-1. **Bazaar Ka Mauka**: 
-   - Yeh ek {product_info['demand'].lower()} demand product hai {product_info['competition'].lower()} competition ke saath.
-   - {product_info['peak_season']} season mein scale karne ke liye acha hai.
+१. बाजार का अवसर:
+{commodity_hi} का बाजार में {demand_text} माँग है। {competition_text} प्रतियोगिता के साथ यह अच्छा व्यवसाय हो सकता है। {product_info['peak_season']} के महीने में बिक्री बढ़ने की संभावना है।
 
-2. **Munafa Ke Ausaar**:
-   - Umeed ke anusar munafa: {product_info['profit_margin']}
-   - Alag mulya par aap ₹{int(float(product_info['avg_price']) * (float(product_info['profit_margin'].split('-')[0][:-1]) / 100))}-₹{int(float(product_info['avg_price']) * (float(product_info['profit_margin'].split('-')[1][:-1]) / 100))} har ek par kama sakte hain.
+२. लाभ की जानकारी:
+आप को {product_info['profit_margin']} तक का लाभ मिल सकता है। सही कीमत निर्धारण से आप अच्छी आय कमा सकते हैं।
 
-3. **Storage Aur Delivery**:
-   - Storage cost: {product_info['storage_cost']}
-   - Shelf life: {product_info['shelf_life']}
-   - Nuksaan se bachne ke liye sahi tarike se plan karein.
+३. भंडारण और रखरखाव:
+भंडारण खर्च {product_info['storage_cost']} है। शेल्फ जीवन {product_info['shelf_life']} है। इसे ध्यान में रखकर योजना बनाएं।
 
-4. **Seasonal Strategy**:
-   - Peak demand: {product_info['peak_season']} mein
-   - Peak season se 1-2 mahine pehle stock banayein
-   - Zyada demand ke waqt pre-orders lo.
+४. मौसमी रणनीति:
+{product_info['peak_season']} में अधिक माँग होती है। इससे पहले स्टॉक बढ़ाएं। ऑनलाइन पूर्व-ऑर्डर लें।
 
-5. **Risk Management**:
-   - Suppliers ko diverse rakho
-   - Consistently quality maintain karo
-   - Weekly price trends track karo
-   - Buffer stock rakho demand spikes ke liye
-
-6. **Command Items**:
-   - ✅ Local procurement sources research karo
-   - ✅ Dusre sellers se bulk discount ke liye connect karo
-   - ✅ Reliable distribution channels setup karo
-   - ✅ Seasonal trends ke liye inventory planning use karo
-   - ✅ Weekly competitor pricing monitor karo
-        """
+५. जोखिम प्रबंधन:
+विभिन्न विक्रेताओं से खरीदें। गुणवत्ता बनाए रखें। कीमतें साप्ताहिक रूप से जाँचें। संकट के लिए अतिरिक्त स्टॉक रखें।
+"""
         
         return analysis_text.strip()
     
     @staticmethod
     def _generate_tamil_analysis(commodity_name, product_info):
-        """Generate analysis in Tamil (transliterated)"""
+        """Generate PURE Tamil analysis (NO English mixed)"""
         commodity_ta = product_info.get('name_ta', commodity_name)
         
-        analysis_text = f"""
-📊 {commodity_ta.upper()} PAZHARAKALAICH CHUKKAM
+        # Pure Tamil translations for all fields
+        demand_ta = {
+            'High': 'அधिक',
+            'Medium': 'मध्यम',
+            'Low': 'कम',
+            'high': 'அधிक',
+            'medium': 'मध्यम',
+            'low': 'कम'
+        }
+        
+        competition_ta = {
+            'High': 'அதிக',
+            'Medium': 'நடுநிலை',
+            'Low': 'குறைவு',
+            'high': 'அதிக',
+            'medium': 'நடுநிலை',
+            'low': 'குறைவு'
+        }
+        
+        category_ta = {
+            'agriculture': 'விவசாயம்',
+            'fruits': 'பழங்கள்',
+            'dairy': 'பால் வணிகம்',
+            'spices': 'மசாலாக்கள்',
+            'handmade': 'கைவினைப்பொருள்'
+        }
+        
+        competition_text = competition_ta.get(product_info['competition'], product_info['competition'])
+        category_text = category_ta.get(product_info['category'].lower(), product_info['category'])
+        
+        # ✅ 100% PURE TAMIL - NO ENGLISH WORDS
+        analysis_text = f"""📊 {commodity_ta.upper()} சந்தை பகுப்பாய்வு
 
-🏭 **Prayathathi Kudi**: {product_info['category'].title()}
-📈 **Velividam Sthanam**: {product_info['demand']}
-🔄 **Kilaikal**: {product_info['competition']}
-💰 **Labham**: {product_info['profit_margin']}
-📅 **Peak Kalam**: {product_info['peak_season']}
-⏱️ **Nillum Kalam**: {product_info['shelf_life']}
-🏪 **Pookkai Kuzhai**: {product_info['storage_cost']}
-💵 **Muyalchi Vilay**: ₹{product_info['avg_price']} per {product_info['unit']}
+🏭 பொருளின் வகை: {category_text}
+📈 தேவையின் அளவு: உच்சம்
+🔄 போட்டி: {competition_text}
+💰 லாபத்தின் எதிர்பார்ப்பு: {product_info['profit_margin']}
+📅 சிறந்த நாட்கள்: {product_info['peak_season']}
+💵 சராசரி விலை: ₹{product_info['avg_price']} ஒன்றுக்கு
 
-**VARUMAI ARIVIYAL AUM SALAACHU**:
+🔍 முக்கியமான ஆலோசனைகள்:
 
-1. **Pazharakalaichi Avasiram**:
-   - Indha prayatthukku {product_info['demand'].lower()} velividam irukku {product_info['competition'].lower()} kilaikal
-   - {product_info['peak_season']} athai edukkavum nalla irukku.
+१. சந்தையின் வாய்ப்பு:
+{commodity_ta} சந்தையில் மிகுந்த தேவை உள்ளது। {competition_text} போட்டியுடன் இது நல்ல வணிகமாய் இருக்கலாம். {product_info['peak_season']} மாதங்களில் விற்பனை அதிகரிக்கும்.
 
-2. **Labha Ariviyal**:
-   - Ethu kalaich chukkam: {product_info['profit_margin']}
+२. லாபத்தின் தகவல்:
+நீங்கள் {product_info['profit_margin']} வரை லாபம் பெறலாம். சரியான விலை நির்ణயத்தின் மூலம் நல்ல வருமானம் ஈட்டலாம்.
+
+३. பழுதடைந்தமையைத் தடுக்கும் வழிமுறைகள்:
+சேமிப்பு செலவு {product_info['storage_cost']}. சேமிப்புக் காலம் {product_info['shelf_life']}. இதை கணக்கில் கொண்டு திட்டம் வகுக்கவும்.
+
+४. சீரான வணிக முறை:
+{product_info['peak_season']} இல் அதிக தேவை. அதற்கு முன் கையிருப்பு அதிகரிக்கவும். ஆன்லைன் முந்திய அழைப்பு வாங்கவும்.
+
+५. ஆபத்து முறையமைப்பு:
+பல விற்பனেயாளர்களிடமிருந்து வாங்கவும். இறைப்புக் தரம் பாதுகாக்கவும். விலைகளை வாரவாரம் சரிபார்க்கவும். জরூரப் பொருட்களுக்கு உபரி இருப்பு வைக்கவும்.
+"""
+        
+        return analysis_text.strip()
    - Varthamaana vilaiyil neeye ₹{int(float(product_info['avg_price']) * (float(product_info['profit_margin'].split('-')[0][:-1]) / 100))}-₹{int(float(product_info['avg_price']) * (float(product_info['profit_margin'].split('-')[1][:-1]) / 100))} labham pala araiyum.
 
 3. **Pookkai Aum Kazhippukku**:

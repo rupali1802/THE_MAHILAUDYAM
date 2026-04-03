@@ -8,6 +8,29 @@ import '../styles/MarketPrice.css';
 // Voice recognition setup
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+// Helper function to detect language of text based on character scripts
+const detectLanguageOfText = (text) => {
+  if (!text) return 'en';
+  
+  // Count character ranges to determine language
+  // Devanagari (Hindi): \u0900-\u097F
+  // Tamil: \u0B80-\u0BFF
+  const devanagariChars = (text.match(/[\u0900-\u097F]/g) || []).length;
+  const tamilChars = (text.match(/[\u0B80-\u0BFF]/g) || []).length;
+  const englishChars = (text.match(/[a-zA-Z]/g) || []).length;
+  
+  const totalChars = text.length;
+  const englishRatio = englishChars / totalChars;
+  const devanagariRatio = devanagariChars / totalChars;
+  const tamilRatio = tamilChars / totalChars;
+  
+  console.log(`🔍 Character analysis: EN=${englishRatio.toFixed(2)} HI=${devanagariRatio.toFixed(2)} TA=${tamilRatio.toFixed(2)}`);
+  
+  if (devanagariRatio > 0.15) return 'hi';  // >15% Devanagari = Hindi
+  if (tamilRatio > 0.15) return 'ta';      // >15% Tamil = Tamil
+  return 'en';                               // Otherwise English
+};
+
 export default function MarketPrice() {
   const { t, lang, language } = useLanguage();
   const [prices, setPrices] = useState([]);
@@ -19,8 +42,11 @@ export default function MarketPrice() {
   const [isListening, setIsListening] = useState(false);
   const [selectedCommodity, setSelectedCommodity] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [languageForAnalysis, setLanguageForAnalysis] = useState(language || 'en');  // ✅ FALLBACK #1: Cache language selection
+  const [retryCount, setRetryCount] = useState(0);  // ✅ FALLBACK #2: Track retry attempts
   const recognitionRef = useRef(null);
   const speechSynthesisRef = useRef(null);
+  const languageRef = useRef(language || 'en');  // ✅ FALLBACK #3: Ref for immediate access
 
   useEffect(() => {
     getMarketPrices()
@@ -31,6 +57,15 @@ export default function MarketPrice() {
       .catch(() => setPrices([]))
       .finally(() => setLoading(false));
   }, []);
+
+  // ✅ FALLBACK #4: Sync cached language with context whenever it changes
+  useEffect(() => {
+    const currentLang = language || 'en';
+    console.log(`🌐 Language context changed: ${currentLang}`);
+    setLanguageForAnalysis(currentLang);
+    languageRef.current = currentLang;  // Update ref immediately for closures
+    setRetryCount(0);  // Reset retry on language change
+  }, [language]);
 
   const filtered = prices.filter((p) =>
     p.commodity_name.toLowerCase().includes(search.toLowerCase())
@@ -44,14 +79,18 @@ export default function MarketPrice() {
     }
 
     try {
+      // ✅ FALLBACK: Capture language at moment of listening
+      const listeningLanguage = languageForAnalysis || language || 'en';
+      console.log(`🎤 Starting voice input with language: ${listeningLanguage}`);
+      
       const recognition = new SpeechRecognition();
       recognitionRef.current = recognition;
-      recognition.lang = language === 'hi' ? 'hi-IN' : language === 'ta' ? 'ta-IN' : 'en-US';
+      recognition.lang = listeningLanguage === 'hi' ? 'hi-IN' : listeningLanguage === 'ta' ? 'ta-IN' : 'en-US';
       recognition.interimResults = false;
       recognition.continuous = false;
 
       recognition.onstart = () => {
-        console.log('🎤 Listening started');
+        console.log('🎤 Listening started with lang:', recognition.lang);
         setIsListening(true);
       };
 
@@ -105,17 +144,32 @@ export default function MarketPrice() {
       return;
     }
 
+    // ✅ FALLBACK: Use multiple language sources for speech
+    let speakLanguage = languageRef.current;  // Ref first
+    if (!speakLanguage || speakLanguage === 'en') {
+      speakLanguage = languageForAnalysis;  // Then state cache
+    }
+    if (!speakLanguage) {
+      speakLanguage = language || 'en';  // Then context
+    }
+
+    console.log(`🔊 Speech synthesis language sources:`);
+    console.log(`   Ref: ${languageRef.current}`);
+    console.log(`   Cache: ${languageForAnalysis}`);
+    console.log(`   Context: ${language}`);
+    console.log(`   Using: ${speakLanguage}`);
+
     // Cancel any ongoing speech
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = language === 'hi' ? 'hi-IN' : language === 'ta' ? 'ta-IN' : 'en-US';
+    utterance.lang = speakLanguage === 'hi' ? 'hi-IN' : speakLanguage === 'ta' ? 'ta-IN' : 'en-US';
     utterance.rate = 0.9;
     utterance.pitch = 1;
     utterance.volume = 1;
 
     utterance.onstart = () => {
-      console.log('🔊 Speaking started');
+      console.log(`🔊 Speaking started in: ${utterance.lang}`);
       setIsSpeaking(true);
     };
 
@@ -140,8 +194,8 @@ export default function MarketPrice() {
     }
   };
 
-  // Get market analysis from AI
-  const getMarketAnalysis = async () => {
+  // ✅ ENHANCED: Get market analysis with multiple fallback mechanisms
+  const getMarketAnalysis = async (retryAttempt = 0) => {
     if (!analysisQuery.trim()) {
       alert(t('market.analysisPlaceholder') || 'Please enter a question');
       return;
@@ -152,9 +206,26 @@ export default function MarketPrice() {
     
     try {
       const apiUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/market-analysis/`;
-      console.log('📡 Sending to:', apiUrl);
-      console.log('📝 Query:', analysisQuery);
-      console.log('🌐 Language:', language);
+      
+      // ✅ FALLBACK #5: Use multiple language sources in order of preference
+      let finalLanguage = languageRef.current;  // Ref is immediate  
+      if (!finalLanguage || finalLanguage === 'en') {
+        finalLanguage = languageForAnalysis;  // State cache
+      }
+      if (!finalLanguage) {
+        finalLanguage = language || 'en';  // Context
+      }
+      
+      console.log(`\n${'='.repeat(60)}`);
+      console.log(`🔄 ANALYSIS REQUEST #${retryAttempt + 1}`);
+      console.log(`${'='.repeat(60)}`);
+      console.log(`📡 API URL: ${apiUrl}`);
+      console.log(`📝 Query: ${analysisQuery}`);
+      console.log(`🌐 Language (ref): ${languageRef.current}`);
+      console.log(`🔄 Language (state cache): ${languageForAnalysis}`);
+      console.log(`🌐 Language (context): ${language}`);
+      console.log(`✅ FINAL Language to send: ${finalLanguage}`);
+      console.log(`🔄 Retry attempt: ${retryAttempt}`);
       
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -163,12 +234,13 @@ export default function MarketPrice() {
         },
         body: JSON.stringify({
           query: analysisQuery,
-          language: language || 'en',
-          commodity: selectedCommodity || ''
+          language: finalLanguage,  // ✅ Use the guaranteed language
+          commodity: selectedCommodity || '',
+          retry_count: retryAttempt  // Send to backend for logging
         })
       });
 
-      console.log('📨 Response status:', response.status);
+      console.log(`📨 Response status: ${response.status}`);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -177,7 +249,8 @@ export default function MarketPrice() {
       }
 
       const data = await response.json();
-      console.log('✅ Analysis received:', data);
+      console.log(`✅ Analysis received from backend`);
+      console.log(`📊 Backend returned language: ${data.language || 'NOT SPECIFIED'}`);
       
       // Extract analysis text from response
       const analysisText = typeof data.analysis === 'string' 
@@ -186,17 +259,58 @@ export default function MarketPrice() {
           ? data.analysis.analysis 
           : 'No analysis available';
       
-      // Clean up the text and remove extra whitespace
       const cleanedAnalysis = analysisText.trim();
-      setAnalysisResult(cleanedAnalysis);
+      console.log(`📄 Response text (first 150 chars): ${cleanedAnalysis.substring(0, 150)}`);
       
-      // Speak the analysis if it's text
-      if (cleanedAnalysis && cleanedAnalysis !== 'No analysis available') {
-        setTimeout(() => speakAnalysis(cleanedAnalysis), 500);
+      // ✅ FALLBACK #6: Detect actual language of returned text
+      const detectedLang = detectLanguageOfText(cleanedAnalysis);
+      const responseLanguage = data.language || finalLanguage;
+      
+      console.log(`🔍 Character detection: ${detectedLang}`);
+      console.log(`🔍 Expected language: ${finalLanguage}`);
+      console.log(`🔍 Match: ${detectedLang === finalLanguage ? '✅ YES' : '❌ NO'}`);
+      
+      // ✅ FALLBACK #7: If language mismatch and haven't retried yet, retry with stronger enforcement
+      if (detectedLang !== finalLanguage && finalLanguage !== 'en' && retryAttempt < 2) {
+        console.warn(`⚠️ Language mismatch! Expected ${finalLanguage}, got ${detectedLang}`);
+        console.log(`🔄 Retrying with explicit language enforcement...`);
+        setRetryCount(retryAttempt + 1);
+        
+        // Wait 500ms then retry
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return getMarketAnalysis(retryAttempt + 1);
       }
+      
+      // ✅ FALLBACK #8: Store result WITH language metadata for display
+      const resultWithLanguage = {
+        text: cleanedAnalysis,
+        language: responseLanguage,
+        detectedLanguage: detectedLang,
+        sentLanguage: finalLanguage,
+        timestamp: new Date().toISOString()
+      };
+      
+      setAnalysisResult(cleanedAnalysis);
+      // Store full metadata in a separate ref if needed for debugging
+      window.lastAnalysisLanguageMetadata = resultWithLanguage;
+      
+      console.log(`✅ RESULT SET FOR DISPLAY`);
+      console.log(`   Text language: ${resultWithLanguage.language}`);
+      console.log(`   Display language: ${finalLanguage}`);
+      console.log(`${'='.repeat(60)}\n`);
+      
+      // Speak the analysis with RESPONSE language (what backend returned)
+      if (cleanedAnalysis && cleanedAnalysis !== 'No analysis available') {
+        setTimeout(() => {
+          console.log(`🔊 Speaking in language: ${responseLanguage}`);
+          speakAnalysis(cleanedAnalysis);
+        }, 500);
+      }
+      
+      setRetryCount(0);  // Reset retries on success
     } catch (error) {
       console.error('❌ Error getting market analysis:', error);
-      const errorMsg = `Error: ${error.message || 'Could not analyze the market. Please check your connection and try again.'}`;
+      const errorMsg = `Error: ${error.message || 'Could not analyze. Please check connection.'}`;
       setAnalysisResult(errorMsg);
     } finally {
       setAnalysisLoading(false);
@@ -528,9 +642,9 @@ export default function MarketPrice() {
                     fontWeight: 600,
                     transition: 'all 0.2s ease',
                   }}
-                  title={isSpeaking ? 'Stop speaking' : 'Speak analysis'}
+                  title={isSpeaking ? t('market.stopSpeaking') : t('market.speak')}
                 >
-                  🔊 {isSpeaking ? 'Stop' : 'Speak'}
+                  🔊 {isSpeaking ? t('market.stop') : t('market.speak')}
                 </button>
               )}
             </div>
