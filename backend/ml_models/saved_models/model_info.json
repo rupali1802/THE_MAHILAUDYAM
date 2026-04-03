@@ -1,0 +1,21 @@
+{
+  "train_accuracy": 0.9807692307692307,
+  "test_accuracy": 0.8076923076923077,
+  "total_examples": 260,
+  "intents": [
+    "expense",
+    "income",
+    "market",
+    "mentor",
+    "payment",
+    "profit",
+    "sales",
+    "schemes",
+    "training"
+  ],
+  "vectorizer_features": 500,
+  "ngram_range": [
+    1,
+    2
+  ]
+}

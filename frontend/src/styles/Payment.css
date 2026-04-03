@@ -1,0 +1,23 @@
+/* Payment Page Specific Styling */
+
+.data-page__header--payment {
+  background: linear-gradient(135deg, var(--info-600) 0%, var(--info-700) 100%);
+}
+
+.data-page__header--payment .data-page__header-title {
+  color: white;
+}
+
+.data-page__header--payment .data-page__header-subtitle {
+  color: var(--info-100);
+}
+
+.data-page__record-icon--payment {
+  background: linear-gradient(135deg, var(--info-100), var(--info-50));
+  color: var(--info-600);
+}
+
+.data-page__record-amount--payment {
+  color: var(--info-600);
+  font-weight: 700;
+}

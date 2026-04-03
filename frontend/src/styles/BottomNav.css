@@ -1,0 +1,128 @@
+/* ============ BOTTOM NAVIGATION - Modern Horizontal Bar Design ============ */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 500;
+  width: 100%;
+  display: block;
+  border-top: 1px solid rgba(200, 200, 200, 0.2);
+}
+
+.bottom-nav__container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 0;
+  padding: 8px 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(200, 200, 200, 0.2);
+  animation: slideUp 0.6s ease-out;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  max-height: calc(100vh - 60px);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bottom-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 10px;
+  min-width: 60px;
+  height: auto;
+  border: none;
+  background: transparent;
+  color: #666666;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 500;
+  text-align: center;
+  white-space: normal;
+  transition: all 0.2s ease;
+  flex: 0 1 auto;
+}
+
+.bottom-nav__item:hover {
+  background: rgba(168, 85, 247, 0.08);
+  color: #a855f7;
+  transform: translateY(-2px);
+}
+
+/* Active State - Purple Highlight */
+.bottom-nav__item--active {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.bottom-nav__item--active:hover {
+  background: rgba(168, 85, 247, 0.25);
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.2);
+}
+
+.bottom-nav__icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  stroke-width: 2;
+}
+
+.bottom-nav__label {
+  max-width: 60px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  font-family: 'Poppins', system-ui, sans-serif;
+  word-break: break-word;
+}
+
+/* Show labels on larger mobile screens */
+@media (min-width: 481px) and (max-width: 1023px) {
+  .bottom-nav__item {
+    min-width: 56px;
+    height: 56px;
+    padding: 8px 10px;
+    gap: 4px;
+    font-size: 12px;
+  }
+}
+
+/* Tablets */
+@media (max-width: 600px) {
+  .bottom-nav {
+    bottom: 16px;
+  }
+
+  .bottom-nav__container {
+    padding: 10px 14px;
+    gap: 2px;
+  }
+
+  .bottom-nav__item {
+    min-width: 44px;
+    height: 44px;
+    padding: 6px 8px;
+    gap: 2px;
+    font-size: 10px;
+  }
+}

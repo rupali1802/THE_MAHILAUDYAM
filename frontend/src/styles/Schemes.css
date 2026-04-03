@@ -1,0 +1,236 @@
+/* Schemes Page Specific Styling */
+
+.data-page__header--schemes {
+  background: linear-gradient(135deg, var(--brand-600) 0%, var(--brand-700) 100%);
+}
+
+.data-page__header--schemes .data-page__header-title {
+  color: white;
+}
+
+.data-page__header--schemes .data-page__header-subtitle {
+  color: var(--brand-100);
+}
+
+.data-page__record-icon--schemes {
+  background: linear-gradient(135deg, var(--brand-100), var(--brand-50));
+  color: var(--brand-600);
+}
+
+.data-page__record-item--schemes {
+  border-left: 4px solid var(--brand-600);
+}
+
+/* Scheme Card Specific */
+.data-page__scheme-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.data-page__scheme-card:hover {
+  box-shadow: 0 6px 16px rgba(99, 48, 186, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Scheme Details */
+.data-page__scheme-details {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--gray-200);
+}
+
+.data-page__scheme-section {
+  margin-bottom: var(--space-md);
+}
+
+.data-page__scheme-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: var(--space-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.data-page__scheme-text {
+  font-size: var(--font-size-sm);
+  color: var(--gray-600);
+  line-height: 1.6;
+}
+
+.data-page__scheme-link {
+  display: inline-block;
+  margin-top: var(--space-md);
+  color: var(--brand-600);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.data-page__scheme-link:hover {
+  color: var(--brand-700);
+  transform: translateX(2px);
+}
+
+/* New Expandable Scheme Cards */
+.schemes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scheme-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.scheme-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #3b82f6;
+}
+
+.scheme-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.scheme-card__title-section {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  align-items: flex-start;
+}
+
+.scheme-card__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+.scheme-card__agency {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.scheme-card__summary {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.scheme-card__category-badge {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.scheme-card__amount-badge {
+  display: inline-block;
+  background: #dcfce7;
+  color: #166534;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.scheme-card__details {
+  padding: 12px 0;
+  border-top: 1px solid #f3f4f6;
+  margin-top: 12px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+.scheme-card__detail-item {
+  margin-bottom: 16px;
+}
+
+.scheme-card__detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.scheme-card__detail-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scheme-card__detail-value {
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.scheme-card__apply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 12px;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.scheme-card__apply-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.scheme-card__apply-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .scheme-card {
+    padding: 12px;
+  }
+
+  .scheme-card__name {
+    font-size: 14px;
+  }
+
+  .scheme-card__detail-value {
+    font-size: 12px;
+  }
+}
