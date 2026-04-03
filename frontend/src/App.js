@@ -12,10 +12,9 @@ import Income from './pages/Income';
 import Expense from './pages/Expense';
 import Sales from './pages/Sales';
 import Profit from './pages/Profit';
-import Payment from './pages/Payment';
 import MarketPrice from './pages/MarketPrice';
 import Schemes from './pages/Schemes';
-import Mentor from './pages/Mentor';
+import Mentor from './pages/MentorChat';
 import Profile from './pages/Profile';
 import VoiceAssistant from './pages/VoiceAssistant';
 
@@ -38,7 +37,6 @@ function AppRoutes() {
         <Route path="/expense" element={<Expense />} />
         <Route path="/sales" element={<Sales />} />
         <Route path="/profit" element={<Profit />} />
-        <Route path="/payment" element={<Payment />} />
         <Route path="/market" element={<MarketPrice />} />
         <Route path="/schemes" element={<Schemes />} />
         <Route path="/mentor" element={<Mentor />} />

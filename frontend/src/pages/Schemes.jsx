@@ -14,19 +14,79 @@ const CATEGORY_KEYS = {
 };
 
 export default function Schemes() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [schemes, setSchemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [expanded, setExpanded] = useState(null);
 
+  // Agency name translation mapping
+  const translateAgency = (agency) => {
+    if (!agency) return 'N/A';
+    
+    const agencyMap = {
+      'Ministry of Agriculture & Horticulture': {
+        en: 'Ministry of Agriculture & Horticulture',
+        hi: 'कृषि और बागवानी मंत्रालय',
+        ta: 'விவசாயம் மற்றும் தோட்டக்கலை அமைப்பு'
+      },
+      'Ministry of Rural Development': {
+        en: 'Ministry of Rural Development',
+        hi: 'ग्रामीण विकास मंत्रालय',
+        ta: 'கிராம வளர்ச்சி அமைப்பு'
+      },
+      'Ministry of Finance': {
+        en: 'Ministry of Finance',
+        hi: 'वित्त मंत्रालय',
+        ta: 'நிதி அமைப்பு'
+      },
+      'Ministry of Labor & Employment': {
+        en: 'Ministry of Labor & Employment',
+        hi: 'श्रम और रोजगार मंत्रालय',
+        ta: 'தொழிலாளர் மற்றும் வேலைவாய்ப்பு அமைப்பு'
+      },
+      'Ministry of MSME': {
+        en: 'Ministry of MSME',
+        hi: 'सूक्ष्म, लघु और मध्यम उद्यम मंत्रालय',
+        ta: 'சிறு, நடு மற்றும் நடுநிலை தொழிலுறவு அமைப்பு'
+      },
+      'Ministry of Women & Child Development': {
+        en: 'Ministry of Women & Child Development',
+        hi: 'महिला और बाल विकास मंत्रालय',
+        ta: 'பெண்கள் மற்றும் சிறுவர் வளர்ச்சி அமைப்பு'
+      },
+      'Ministry of Commerce & Industry': {
+        en: 'Ministry of Commerce & Industry',
+        hi: 'वाणिज्य और उद्योग मंत्रालय',
+        ta: 'வணிகம் மற்றும் தொழிற்சாலை அமைப்பு'
+      },
+      'NABARD': {
+        en: 'NABARD',
+        hi: 'नाबार्ड',
+        ta: 'நாபார்ட்'
+      },
+      'SBI': {
+        en: 'State Bank of India',
+        hi: 'भारतीय स्टेट बैंक',
+        ta: 'இந்தியா மாநில வங்கி'
+      }
+    };
+
+    const mapped = agencyMap[agency];
+    if (mapped) {
+      return mapped[language] || agency;
+    }
+    
+    return agency;
+  };
+
   useEffect(() => {
     setLoading(true);
-    getSchemes()
+    getSchemes('', language)
       .then((r) => setSchemes(r.data.results))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [language]);
 
   const filtered = filter === 'all' ? schemes : schemes.filter(s => s.category === filter);
   const categories = [...new Set(schemes.map(s => s.category))];
@@ -241,7 +301,7 @@ export default function Schemes() {
                         {t('schemes.agency')}
                       </p>
                       <p style={{ margin: '0', fontSize: 'var(--font-base)', color: 'var(--gray-700)' }}>
-                        {scheme.agency}
+                        {translateAgency(scheme.agency)}
                       </p>
                     </div>
                   )}

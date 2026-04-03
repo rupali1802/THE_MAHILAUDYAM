@@ -5,18 +5,22 @@ All REST endpoints for the business management system
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import Sum, Count, Avg
+from django.db.models import Sum, Count, Avg, Min, Max
 from django.utils import timezone
 from datetime import date, timedelta, datetime
 from decimal import Decimal
 import sys
 import os
 
-from .models import User, Income, Expense, Sales, Payment, MarketPrice, Scheme, Mentor, MentorChat
+from .models import (
+    User, Income, Expense, Sales, MarketPrice, Scheme, Mentor, MentorChat,
+    PriceHistory, MarketPriceAnalysis
+)
 from .serializers import (
     UserSerializer, IncomeSerializer, ExpenseSerializer, SalesSerializer,
-    PaymentSerializer, MarketPriceSerializer, SchemeSerializer,
-    MentorSerializer, MentorChatSerializer
+    MarketPriceSerializer, SchemeSerializer,
+    MentorSerializer, MentorChatSerializer,
+    PriceHistorySerializer, MarketPriceAnalysisSerializer
 )
 
 # Add ml_models to path
@@ -379,42 +383,6 @@ class ProfitView(APIView):
             )
 
 
-# ==================== PAYMENT VIEWS ====================
-
-class PaymentListView(APIView):
-    def get(self, request):
-        try:
-            device_id = request.query_params.get('device_id')
-            if not device_id:
-                return Response({'error': 'device_id required'}, status=status.HTTP_400_BAD_REQUEST)
-            queryset = Payment.objects.filter(device_id=device_id)
-            serializer = PaymentSerializer(queryset, many=True)
-            return Response({'results': serializer.data, 'count': queryset.count()})
-        except Exception as e:
-            return Response(
-                {'error': 'Error fetching payments', 'details': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-
-class PaymentAddView(APIView):
-    def post(self, request):
-        try:
-            data = request.data.copy()
-            if not data.get('date'):
-                data['date'] = date.today().isoformat()
-            serializer = PaymentSerializer(data=data)
-            if serializer.is_valid():
-                payment = serializer.save()
-                return Response({'success': True, 'data': PaymentSerializer(payment).data}, status=status.HTTP_201_CREATED)
-            return Response({'success': False, 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response(
-                {'error': 'Error adding payment', 'details': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-
 # ==================== MARKET PRICE VIEWS ====================
 
 class MarketPriceListView(APIView):
@@ -433,17 +401,490 @@ class MarketPriceListView(APIView):
             )
 
 
+class MarketAnalysisView(APIView):
+    """AI-powered market analysis with real-time intelligence"""
+    
+    # Product image URLs mapping (matches frontend productImages.js)
+    PRODUCT_IMAGES = {
+        'rice': 'https://images.unsplash.com/photo-1595433707802-6b2626ef1c91?w=400&h=300&fit=crop',
+        'wheat': 'https://images.unsplash.com/photo-1585979949075-ade4e5c8b651?w=400&h=300&fit=crop',
+        'onion': 'https://images.unsplash.com/photo-1585518419759-4b61ecc3e4b6?w=400&h=300&fit=crop',
+        'carrot': 'https://images.unsplash.com/photo-1447175008436-054170c2e601?w=400&h=300&fit=crop',
+        'tomato': 'https://images.unsplash.com/photo-1532694215381-6c9c90162036?w=400&h=300&fit=crop',
+        'potato': 'https://images.unsplash.com/photo-1596363860416-bf4e4b30287b?w=400&h=300&fit=crop',
+        'banana': 'https://images.unsplash.com/photo-1571407614161-c3ce9b55aacd?w=400&h=300&fit=crop',
+        'mango': 'https://images.unsplash.com/photo-1553279768-865a24cda92f?w=400&h=300&fit=crop',
+        'apple': 'https://images.unsplash.com/photo-1560806674-104fc7c55c24?w=400&h=300&fit=crop',
+        'orange': 'https://images.unsplash.com/photo-1564241158518-d9c9e562d5fd?w=400&h=300&fit=crop',
+        'milk': 'https://images.unsplash.com/photo-1563636619-51f2b652fcd2?w=400&h=300&fit=crop',
+        'ghee': 'https://images.unsplash.com/photo-1608849823803-97d6b6b3c869?w=400&h=300&fit=crop',
+        'yogurt': 'https://images.unsplash.com/photo-1599810694-02278e42f89b?w=400&h=300&fit=crop',
+        'paneer': 'https://images.unsplash.com/photo-1452821952904-5573d96a54fa?w=400&h=300&fit=crop',
+        'turmeric': 'https://images.unsplash.com/photo-1599599810694-02278e42f89b?w=400&h=300&fit=crop&q=80',
+        'chili': 'https://images.unsplash.com/photo-1599599810694-02278e42f89b?w=400&h=300&fit=crop',
+        'coconut': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+        'coriander': 'https://images.unsplash.com/photo-1599599810694-02278e42f89b?w=400&h=300&fit=crop',
+        'black pepper': 'https://images.unsplash.com/photo-1599599810694-02278e42f89b?w=400&h=300&fit=crop',
+        'coconut oil': 'https://images.unsplash.com/photo-1599599810694-02278e42f89b?w=400&h=300&fit=crop',
+        'sesame oil': 'https://images.unsplash.com/photo-1599599810694-02278e42f89b?w=400&h=300&fit=crop',
+        'pickle': 'https://images.unsplash.com/photo-1599599810694-02278e42f89b?w=400&h=300&fit=crop',
+        'jams': 'https://images.unsplash.com/photo-1589985643862-b53b6f85b0bb?w=400&h=300&fit=crop',
+        'dry snacks': 'https://images.unsplash.com/photo-1585667228485-d0a7f7a3caa8?w=400&h=300&fit=crop',
+        'handmade cloth': 'https://images.unsplash.com/photo-1540553016-e8290a976fcb?w=400&h=300&fit=crop',
+        'embroidered saree': 'https://images.unsplash.com/photo-1590080876-0cd4e0b7b858?w=400&h=300&fit=crop',
+        'handmade jewelry': 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&h=300&fit=crop',
+        'wooden craft': 'https://images.unsplash.com/photo-1578500494198-246f612d03b3?w=400&h=300&fit=crop'
+    }
+    
+    def get_product_image_url(self, commodity_name):
+        """Get product image URL for commodity (matches frontend logic)"""
+        if not commodity_name:
+            return None
+        
+        key = commodity_name.lower().strip()
+        
+        # Direct match first
+        if key in self.PRODUCT_IMAGES:
+            return self.PRODUCT_IMAGES[key]
+        
+        # Try fuzzy matching for variations
+        for mapped_key, image_url in self.PRODUCT_IMAGES.items():
+            if key in mapped_key or mapped_key in key:
+                return image_url
+        
+        return None
+    def post(self, request):
+        """
+        Analyze market trends using Gemini AI
+        
+        Request body:
+        {
+            "query": "Is banana a good crop to sell?",
+            "language": "en",
+            "commodity": "banana" (optional)
+        }
+        """
+        try:
+            from ml_models.market_analyzer import MarketAnalyzer
+            from ml_models.gemini_helper import GeminiHelper
+            from ml_models.language_detection import LanguageDetector
+            
+            query = request.data.get('query', '').strip()
+            language = request.data.get('language', 'en').strip().lower()
+            commodity = request.data.get('commodity', '').strip()
+            
+            if not query:
+                return Response(
+                    {'error': 'Query required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # CRITICAL: Detect language FIRST from query (more reliable than frontend detection)
+            detected_lang = LanguageDetector.detect(query)
+            print(f"📝 Query detected language: {detected_lang}, Frontend language: {language}")
+            
+            # Use detected language if it's different from 'en' (frontend might send default 'en')
+            if detected_lang and detected_lang in ['hi', 'ta']:
+                language = detected_lang
+                print(f"🌐 Using detected language: {language}")
+            
+            # Extract commodity from query if not provided
+            if not commodity:
+                commodity = MarketAnalyzer._extract_commodity_from_query(query)
+            
+            # Get intelligent market analysis
+            analysis = None
+            
+            # First try commodity-specific analysis
+            if commodity:
+                analysis = MarketAnalyzer.analyze_profit_potential(commodity, language=language)
+            else:
+                # Generate real-time analysis based on query
+                analysis = MarketAnalyzer.generate_real_time_analysis(
+                    query=query,
+                    commodity=None,
+                    language=language
+                )
+            
+            # Get current market prices if commodity is specified (without images)
+            market_data = []
+            prices = None
+            resolved_commodity = None
+            
+            if commodity:
+                resolved_commodity = MarketAnalyzer.resolve_commodity_name(commodity)
+                if resolved_commodity:
+                    prices = MarketPrice.objects.filter(
+                        commodity_name__icontains=resolved_commodity,
+                        is_active=True
+                    ).values('commodity_name', 'price', 'trend', 'market_location', 'unit', 'market_date')[:5]
+                    
+                    if prices.exists():
+                        market_data = list(prices)
+            
+            # CRITICAL: Get Gemini analysis with STRONG language enforcement
+            if GeminiHelper.is_available():
+                try:
+                    print(f"🤖 Calling Gemini with language: {language}")
+                    # Use voice response for better market guidance with STRICT language
+                    voice_analysis = GeminiHelper.generate_voice_response(
+                        user_query=query,
+                        language=language,
+                        extracted_data={'commodity': commodity},
+                        intent='market'
+                    )
+                    if voice_analysis:
+                        # Validate language - if we requested Tamil/Hindi but got English, reject it
+                        if language in ['ta', 'hi']:
+                            # Check if response is mostly English (if it contains too many English letters)
+                            english_ratio = sum(1 for c in voice_analysis if ord(c) < 128) / max(len(voice_analysis), 1)
+                            print(f"📊 English character ratio: {english_ratio:.2%}")
+                            if english_ratio > 0.6:  # More than 60% English characters = reject
+                                print(f"⚠️ Gemini returned mostly English for {language}, using fallback")
+                            else:
+                                analysis = voice_analysis
+                                print(f"✅ Gemini response in {language}: {voice_analysis[:60]}")
+                        else:
+                            analysis = voice_analysis
+                            print(f"✅ Gemini response in {language}: {voice_analysis[:60]}")
+                except Exception as e:
+                    print(f"Gemini voice analysis failed: {str(e)}")
+                    # Fall back to simple enhancement
+                    try:
+                        enhanced_analysis = GeminiHelper.enhance_response(
+                            text=analysis,
+                            language=language,
+                            context=f"Market analysis for: {query}"
+                        )
+                        if enhanced_analysis:
+                            analysis = enhanced_analysis
+                    except:
+                        pass
+            
+            print(f"📤 Returning analysis in {language}: {analysis[:60] if analysis else 'None'}")
+            
+            # Generate product image URL for commodity
+            product_image = None
+            if resolved_commodity or commodity:
+                product_image = self.get_product_image_url(resolved_commodity or commodity)
+            
+            return Response({
+                'analysis': analysis,
+                'language': language,
+                'commodity': resolved_commodity or commodity,
+                'product_image': product_image,
+                'market_data': market_data,
+                'timestamp': datetime.now().isoformat()
+            })
+        
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': 'Error performing market analysis', 'details': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class PriceHistoryView(APIView):
+    """Get historical price data for trend analysis"""
+    
+    def get(self, request):
+        """Get price history for a commodity"""
+        try:
+            commodity = request.query_params.get('commodity')
+            days = int(request.query_params.get('days', 30))
+            market_location = request.query_params.get('market_location', '')
+            
+            if not commodity:
+                return Response(
+                    {'error': 'Commodity name required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Get historical data
+            start_date = date.today() - timedelta(days=days)
+            queryset = PriceHistory.objects.filter(
+                commodity_name__icontains=commodity,
+                market_date__gte=start_date
+            )
+            
+            if market_location:
+                queryset = queryset.filter(market_location__icontains=market_location)
+            
+            queryset = queryset.order_by('market_date')
+            
+            serializer = PriceHistorySerializer(queryset, many=True)
+            return Response({
+                'commodity': commodity,
+                'period_days': days,
+                'count': queryset.count(),
+                'results': serializer.data,
+                'date_range': {
+                    'start': start_date.isoformat(),
+                    'end': date.today().isoformat()
+                }
+            })
+        except Exception as e:
+            return Response(
+                {'error': 'Error fetching price history', 'details': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class PriceTrendsView(APIView):
+    """Get price trend analysis for commodities"""
+    
+    def get(self, request):
+        """Get price trend analysis"""
+        try:
+            commodity = request.query_params.get('commodity')
+            market_location = request.query_params.get('market_location', '')
+            
+            if not commodity:
+                return Response(
+                    {'error': 'Commodity name required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Get analysis data
+            analysis = MarketPriceAnalysis.objects.filter(
+                commodity_name__icontains=commodity
+            ).order_by('-analysis_date').first()
+            
+            if not analysis:
+                return Response({
+                    'error': 'No analysis available yet',
+                    'message': 'Price analysis will be available after daily updates start'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            serializer = MarketPriceAnalysisSerializer(analysis)
+            
+            # Get historical context
+            history_30d = PriceHistory.objects.filter(
+                commodity_name__icontains=commodity,
+                market_date__gte=date.today() - timedelta(days=30)
+            ).order_by('market_date').values_list('price', flat=True)
+            
+            history_7d = PriceHistory.objects.filter(
+                commodity_name__icontains=commodity,
+                market_date__gte=date.today() - timedelta(days=7)
+            ).order_by('market_date').values_list('price', flat=True)
+            
+            return Response({
+                'analysis': serializer.data,
+                'historical_7d': list(history_7d),
+                'historical_30d': list(history_30d),
+                'last_updated': analysis.updated_at.isoformat()
+            })
+        except Exception as e:
+            return Response(
+                {'error': 'Error fetching price trends', 'details': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class MarketComparativeAnalysisView(APIView):
+    """Compare prices across different markets"""
+    
+    def get(self, request):
+        """Get comparative market analysis"""
+        try:
+            commodity = request.query_params.get('commodity')
+            
+            if not commodity:
+                return Response(
+                    {'error': 'Commodity name required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Get latest prices from different markets
+            prices = MarketPrice.objects.filter(
+                commodity_name__icontains=commodity,
+                is_active=True
+            ).values('market_location', 'price', 'unit', 'market_date').order_by('market_location')
+            
+            if not prices.exists():
+                return Response({
+                    'commodity': commodity,
+                    'markets': [],
+                    'message': 'No market data available'
+                })
+            
+            # Calculate statistics
+            prices_list = [float(p['price']) for p in prices]
+            
+            analysis_data = {
+                'commodity': commodity,
+                'markets': list(prices),
+                'statistics': {
+                    'highest_price': max(prices_list) if prices_list else 0,
+                    'lowest_price': min(prices_list) if prices_list else 0,
+                    'average_price': sum(prices_list) / len(prices_list) if prices_list else 0,
+                    'price_range': max(prices_list) - min(prices_list) if prices_list else 0,
+                    'market_count': len(prices_list)
+                } if prices_list else {}
+            }
+            
+            return Response(analysis_data)
+        except Exception as e:
+            return Response(
+                {'error': 'Error fetching comparative analysis', 'details': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class RealtimeMarketAnalysisView(APIView):
+    """Get real-time market analysis with insights"""
+    
+    def get(self, request):
+        """Get comprehensive real-time market insights"""
+        try:
+            # Get all active commodities with analysis
+            analyses = MarketPriceAnalysis.objects.filter(
+                analysis_date=date.today()
+            ).select_related().order_by('trend')
+            
+            serializer = MarketPriceAnalysisSerializer(analyses, many=True)
+            
+            # Group by trend
+            trending_up = [a for a in serializer.data if a['trend'] == 'up']
+            trending_down = [a for a in serializer.data if a['trend'] == 'down']
+            stable = [a for a in serializer.data if a['trend'] == 'stable']
+            
+            # Get top opportunities
+            opportunities = sorted(
+                serializer.data,
+                key=lambda x: (
+                    -x['momentum_score'] if x['recommendation'] == 'buy' else 0,
+                    -x['trend_percentage']
+                )
+            )[:5]
+            
+            return Response({
+                'date': date.today().isoformat(),
+                'total_commodities': analyses.count(),
+                'summary': {
+                    'trending_up': len(trending_up),
+                    'trending_down': len(trending_down),
+                    'stable': len(stable)
+                },
+                'opportunities': opportunities,
+                'all_analysis': serializer.data
+            })
+        except Exception as e:
+            return Response(
+                {'error': 'Error fetching real-time analysis', 'details': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
 # ==================== SCHEME VIEWS ====================
 
 class SchemeListView(APIView):
+    # Tamil translations for common scheme fields
+    TAMIL_TRANSLATIONS = {
+        'Pradhan Mantri Mahila Shakti Scheme': {
+            'name': 'பிரதான மந்திரி மகளிர் சக்தி திட்டம்',
+            'description': 'மகளிர் தொழில்முறை மற்றும் சுயதொழில் ஆதரவுக்கான தேசிய திட்டம்',
+            'eligibility': '18 வயதுக்கு மேற்பட்ட பெண்களும் மகளிர் சுயநதி குழுக்களும் விண்ணப்பிக்கலாம்',
+            'benefits': '₹5 லட்சம் வரை கடன், பயிற்சி, மற்றும் சந்தை இணைப்பு',
+        },
+        'Mukhya Mantri Stree Shakti Yojana': {
+            'name': 'முதல்வர் பெண் சக்தி திட்டம்',
+            'description': 'தமிழ்நாட்டு பெண் தொழிலாளர்களுக்கான பாங்கிங் மற்றும் நிதி உதவி',
+            'eligibility': 'தமிழ்நாட்டில் வசிக்கும் 18-55 வயதுக்கு இடைப்பட்ட பெண்கள்',
+            'benefits': 'தட்டையான வட்டி விகிதத்தில் கடனு, பயிற்சி தொகை ₹2000-5000',
+        },
+        'Prime Minister Employment Generation Programme': {
+            'name': 'பிரதான மந்திரி வேலைவாய்ப்பு உत்பாதன திட்டம்',
+            'description': 'பண்ணை மற்றும் பண்ணை சாராத விகிதாசாரக்களுக்கான நிதி உதவி',
+            'eligibility': 'தொழில் முயற்சிக்காக ₹25,000-25 லட்சம் வரை திறமையான தொழிலாளர்',
+            'benefits': 'தட்டையான வட்டி விகிதம், பயிற்சி மற்றும் மற்ற சலுகைகள்',
+        },
+        'Women Entrepreneurship Development Programme': {
+            'name': 'பெண் தொழிலுறவு வளர்ச்சி திட்டம்',
+            'description': 'பெண் தொழிலாளர்களுக்கான தொழிল ஆதரவு மற்றும் பயிற்சி',
+            'eligibility': '18 வயதுக்கு மேற்பட்ட கல்வி பெற்ற பெண்கள்',
+            'benefits': 'பயிற்சி, மாற்றியுरण்ட ஆதரவு, நிதி உதவி',
+        },
+        'Indira Gandhi Matritva Sahyog Yojana': {
+            'name': 'இந்திரா காந்தி தாய்மை உதவி திட்டம்',
+            'description': 'கர்ப்பிணி பெண்களுக்கான ரூபாய் உதவி',
+            'eligibility': 'கர்ப்பிணி 19 வயதுக்கு மேற்பட்ட பெண்கள்',
+            'benefits': 'கர்ப்ப கால உதவி ₹5000 மற்றும் பிரசவ உதவி ₹5000',
+        },
+    }
+    
     def get(self, request):
         try:
             queryset = Scheme.objects.filter(status='active')
             category = request.query_params.get('category')
+            language = request.query_params.get('language', 'en').lower()
+            
             if category:
                 queryset = queryset.filter(category=category)
-            serializer = SchemeSerializer(queryset, many=True)
-            return Response({'results': serializer.data, 'count': queryset.count()})
+            
+            # Serialize with language awareness
+            schemes_data = []
+            for scheme in queryset:
+                scheme_dict = {
+                    'id': scheme.id,
+                    'category': scheme.category,
+                    'agency': scheme.agency,
+                    'url': scheme.url,
+                    'status': scheme.status,
+                    'deadline': scheme.deadline,
+                    'max_amount': scheme.max_amount,
+                    'created_at': scheme.created_at,
+                    'updated_at': scheme.updated_at,
+                }
+                
+                # Return content in requested language
+                if language == 'hi':
+                    scheme_dict.update({
+                        'name': scheme.name_hi or scheme.name,
+                        'description': scheme.description_hi or scheme.description,
+                        'eligibility': scheme.eligibility_hi or scheme.eligibility,
+                        'benefits': scheme.benefits_hi or scheme.benefits,
+                        'how_to_apply': scheme.how_to_apply_hi or scheme.how_to_apply,
+                    })
+                elif language == 'ta':
+                    # Check if Tamil translation mapping exists
+                    tamil_trans = self.TAMIL_TRANSLATIONS.get(scheme.name, {})
+                    scheme_dict.update({
+                        'name': scheme.name_ta or tamil_trans.get('name', scheme.name),
+                        'description': scheme.description_ta or tamil_trans.get('description', scheme.description),
+                        'eligibility': scheme.eligibility_ta or tamil_trans.get('eligibility', scheme.eligibility),
+                        'benefits': scheme.benefits_ta or tamil_trans.get('benefits', scheme.benefits),
+                        'how_to_apply': scheme.how_to_apply_ta or tamil_trans.get('how_to_apply', scheme.how_to_apply),
+                    })
+                    # Translate agency name to Tamil
+                    AGENCY_TRANSLATIONS = {
+                        'Ministry of Finance & Ministry of MSME': 'நிதி அமைச்சு & சிறு, நடு மற்றும் நடுநிலை தொழிலுறவு அமைச்சு',
+                        'Small Industries Development Bank of India (SIDBI)': 'சிறு தொழிற்சாலை வளர்ச்சி வங்கி (SIDBI)',
+                        'Ministry of Food Processing Industries': 'உணவு பதப்படுத்தல் தொழிற்சாலை அமைச்சு',
+                        'Ministry of Labour & Employment': 'தொழிலாளர் மற்றும் வேலைவாய்ப்பு அமைச்சு',
+                        'Ministry of Agriculture & Horticulture': 'விவசாயம் மற்றும் தோட்டக்கலை அமைச்சு',
+                        'Ministry of Textiles / Industrial Policy': 'நூல் அமைச்சு / தொழிற்சாலை கொள்கை',
+                        'Public Sector Banks': 'பொதுத் துறை வங்கிகள்',
+                        'Ministry of Rural Development (NRLM)': 'கிராம வளர்ச்சி அமைச்சு (NRLM)',
+                        'Ministry of MSME': 'சிறு, நடு மற்றும் நடுநிலை தொழிலுறவு அமைச்சு',
+                    }
+                    translated_agency = AGENCY_TRANSLATIONS.get(scheme.agency, scheme.agency)
+                    scheme_dict['agency'] = translated_agency
+                else:
+                    scheme_dict.update({
+                        'name': scheme.name,
+                        'description': scheme.description,
+                        'eligibility': scheme.eligibility,
+                        'benefits': scheme.benefits,
+                        'how_to_apply': scheme.how_to_apply,
+                    })
+                
+                schemes_data.append(scheme_dict)
+            
+            return Response({'results': schemes_data, 'count': queryset.count()})
         except Exception as e:
             return Response(
                 {'error': 'Error fetching schemes', 'details': str(e)},
@@ -454,8 +895,24 @@ class SchemeListView(APIView):
 # ==================== MENTOR VIEWS ====================
 
 class MentorListView(APIView):
+    # Map specialization text to translation keys
+    SPECIALIZATION_KEYS = {
+        'organic': 'organic', 'organic agriculture': 'organic', 'organic farming': 'organic',
+        'dairy': 'dairy', 'dairy & agriculture': 'dairy', 'dairy and agriculture': 'dairy', 'dairy business': 'dairy',
+        'food': 'food', 'food processing': 'food',
+        'digital': 'digital', 'digital marketing': 'digital',
+    }
+    
+    EXPERTISE_KEYS = {
+        'handicraft': 'handicraft', 'handicraft, marketing, export': 'handicraft',
+        'dairy': 'dairy', 'dairy, agriculture, shg': 'dairy',
+        'food processing': 'foodProcessing', 'food processing, fssai, packaging': 'foodProcessing',
+        'digital': 'digitalMarketing', 'social media, online selling, digital literacy': 'digitalMarketing',
+    }
+    
     def get(self, request):
         try:
+            language = request.query_params.get('language', 'en').lower()
             queryset = Mentor.objects.filter(is_active=True)
             expertise = request.query_params.get('expertise')
             if expertise:
@@ -463,8 +920,27 @@ class MentorListView(APIView):
             availability = request.query_params.get('availability')
             if availability:
                 queryset = queryset.filter(availability=availability)
-            serializer = MentorSerializer(queryset, many=True)
-            return Response({'results': serializer.data, 'count': queryset.count()})
+            
+            # Serialize and add translation keys
+            mentors_data = []
+            for mentor in queryset:
+                data = {
+                    'id': mentor.id,
+                    'name': mentor.name,
+                    'experience_years': mentor.experience_years,
+                    'rating': float(mentor.rating) if mentor.rating else 4.5,
+                    'availability': mentor.availability,
+                    'languages_spoken': mentor.languages_spoken or 'English',
+                    'specialization': mentor.specialization,
+                    'expertise': mentor.expertise,
+                    # Add translation keys
+                    'specializationKey': self.SPECIALIZATION_KEYS.get(mentor.specialization.lower(), 'organic'),
+                    'expertiseKey': self.EXPERTISE_KEYS.get(mentor.expertise.lower(), 'dairy'),
+                    'bioKey': mentor.name.split()[0].lower() if mentor.name else 'mentor',
+                }
+                mentors_data.append(data)
+            
+            return Response({'results': mentors_data, 'count': len(mentors_data)})
         except Exception as e:
             return Response(
                 {'error': 'Error fetching mentors', 'details': str(e)},
@@ -473,13 +949,42 @@ class MentorListView(APIView):
 
 
 class MentorChatView(APIView):
+    def _enforce_language_purity(self, text, language):
+        """Ensure response is pure language with NO mixing"""
+        if not text:
+            return text
+        
+        # Character ranges for different scripts
+        tamil_start, tamil_end = 0x0B80, 0x0BFF
+        devanagari_start, devanagari_end = 0x0900, 0x097F
+        
+        has_tamil = any(tamil_start <= ord(c) <= tamil_end for c in text)
+        has_devanagari = any(devanagari_start <= ord(c) <= devanagari_end for c in text)
+        has_latin = any(ord(c) < 128 and c.isalpha() for c in text)
+        
+        # Count non-ASCII characters per script
+        tamil_chars = sum(1 for c in text if tamil_start <= ord(c) <= tamil_end)
+        devanagari_chars = sum(1 for c in text if devanagari_start <= ord(c) <= devanagari_end)
+        english_chars = sum(1 for c in text if ord(c) < 128 and c.isalpha())
+        total_alpha = tamil_chars + devanagari_chars + english_chars
+        
+        # If language is Tamil but has too much English (>30%), log warning
+        if language == 'ta' and has_latin and english_chars > 0.3 * total_alpha:
+            print(f"⚠️  Language mixing detected: Tamil response with {english_chars}/{total_alpha} English chars")
+        
+        # If language is Hindi but has too much English (>30%), log warning
+        if language == 'hi' and has_latin and english_chars > 0.3 * total_alpha:
+            print(f"⚠️  Language mixing detected: Hindi response with {english_chars}/{total_alpha} English chars")
+        
+        return text
+    
     def get(self, request):
         try:
             device_id = request.query_params.get('device_id')
             mentor_id = request.query_params.get('mentor_id')
             if not device_id or not mentor_id:
                 return Response({'error': 'device_id and mentor_id required'}, status=status.HTTP_400_BAD_REQUEST)
-            queryset = MentorChat.objects.filter(device_id=device_id, mentor_id=mentor_id)
+            queryset = MentorChat.objects.filter(device_id=device_id, mentor_id=mentor_id).order_by('timestamp')
             serializer = MentorChatSerializer(queryset, many=True)
             return Response({'results': serializer.data})
         except Exception as e:
@@ -490,15 +995,233 @@ class MentorChatView(APIView):
 
     def post(self, request):
         try:
-            data = request.data.copy()
-            serializer = MentorChatSerializer(data=data)
-            if serializer.is_valid():
-                chat = serializer.save()
-                return Response({'success': True, 'data': MentorChatSerializer(chat).data}, status=status.HTTP_201_CREATED)
-            return Response({'success': False, 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            from ml_models.mentor_helper import MentorAIHelper
+            from ml_models.gemini_helper import GeminiHelper
+            from ml_models.language_detection import LanguageDetector
+            
+            device_id = request.data.get('device_id')
+            mentor_id = request.data.get('mentor_id')
+            message = request.data.get('message', '').strip()
+            message_type = request.data.get('message_type', 'query')
+            language = request.data.get('language', 'en')
+            
+            if not device_id or not mentor_id or not message:
+                return Response({'error': 'device_id, mentor_id, and message required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # CRITICAL: Detect language from message (more reliable than frontend)
+            detected_lang = LanguageDetector.detect(message)
+            if detected_lang and detected_lang in ['hi', 'ta']:
+                language = detected_lang
+                print(f"🌐 Language auto-detected: {language}")
+            
+            # Save user's message
+            user_chat = MentorChat.objects.create(
+                device_id=device_id,
+                mentor_id=mentor_id,
+                message=message,
+                message_type='query'
+            )
+            
+            # Get mentor data for context
+            try:
+                mentor = Mentor.objects.get(id=mentor_id)
+                mentor_data = MentorSerializer(mentor).data
+            except:
+                mentor_data = {'name': 'AI Mentor', 'specializationKey': 'organic', 'expertiseKey': 'organic', 'experience_years': 10}
+            
+            # Get conversation history for context
+            history = MentorChat.objects.filter(
+                device_id=device_id,
+                mentor_id=mentor_id
+            ).order_by('-timestamp')[:10]  # Last 10 messages
+            
+            conversation_history = [
+                {'message': c.message, 'message_type': c.message_type} 
+                for c in reversed(history)
+            ]
+            
+            # CRITICAL: Check if this is an income-related question
+            income_keywords = ['income', 'earnings', 'revenue', 'sale', 'profit', 'earn', 'money', 'rupees', 'रुपये', 'வருமானம்', 'சம்பாதனை']
+            expense_keywords = ['expense', 'cost', 'spend', 'खर्च', 'செலவு', 'खरीद', 'buy', 'material']
+            
+            is_income_question = any(keyword.lower() in message.lower() for keyword in income_keywords)
+            is_expense_question = any(keyword.lower() in message.lower() for keyword in expense_keywords)
+            
+            print(f"💰 Income question: {is_income_question}, Expense question: {is_expense_question}")
+            
+            # Generate AI response using Gemini with income/expense awareness
+            print(f"🤖 Generating mentor response for question: {message[:50]} in language: {language}")
+            
+            # Build context with income/expense awareness
+            user = None
+            income_total = None
+            expense_total = None
+            
+            try:
+                user = User.objects.get(device_id=device_id)
+                if is_income_question or is_expense_question:
+                    from django.db.models import Sum
+                    from datetime import date, timedelta
+                    
+                    # Get this month's data
+                    start_date = date.today().replace(day=1)
+                    
+                    if is_income_question:
+                        income_total = Income.objects.filter(
+                            device_id=device_id,
+                            date__gte=start_date
+                        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                        print(f"💵 Current month income: {income_total}")
+                    
+                    if is_expense_question:
+                        expense_total = Expense.objects.filter(
+                            device_id=device_id,
+                            date__gte=start_date
+                        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                        print(f"💸 Current month expenses: {expense_total}")
+            except:
+                pass
+            
+            # Prepare enhanced context for income questions
+            context_info = ""
+            if is_income_question and income_total is not None:
+                context_info = f"\n[User Context: Current month income: ₹{income_total}]"
+            elif is_expense_question and expense_total is not None:
+                context_info = f"\n[User Context: Current month expenses: ₹{expense_total}]"
+            
+            ai_response = MentorAIHelper.generate_mentor_response(
+                question=message + context_info,
+                mentor_data=mentor_data,
+                language=language,
+                conversation_history=conversation_history
+            )
+            
+            # If Gemini available and income-specific, use Gemini directly for better accuracy
+            if not ai_response and GeminiHelper.is_available() and (is_income_question or is_expense_question):
+                print(f"🔄 Falling back to Gemini for income-specific guidance")
+                
+                gemini_prompt = f"""You are a business mentor helping a woman entrepreneur in India.
+The user asked: {message}
+
+{f'Their current month income: ₹{income_total}' if income_total else ''}
+{f'Their current month expenses: ₹{expense_total}' if expense_total else ''}
+
+Provide practical, encouraging advice specific to their income/business management.
+Focus on: profit growth, expense management, cash flow, savings.
+Be supportive and culturally sensitive.
+
+Language requirement: Respond ONLY in {language}.
+No mixing of languages. Pure {language} only."""
+                
+                ai_response = GeminiHelper.enhance_response(
+                    text=message,
+                    language=language,
+                    context=gemini_prompt
+                )
+            
+            # If still no response, use fallback
+            if not ai_response:
+                print(f"⚠️  Using fallback response")
+                fallback_responses = {
+                    'en': "That's a great question! Based on your business context, I recommend focusing on tracking your income and expenses carefully. This will help you understand your profit margins better.",
+                    'hi': "यह एक बहुत अच्छा प्रश्न है! अपने व्यवसाय के लिए, मैं आपको आय और खर्च को सावधानी से ट्रैक करने की सलाह देता हूं। यह आपको अपने लाभ मार्जिन को बेहतर समझने में मदद करेगा।",
+                    'ta': "அது சிறந்த கேள்வி! உங்கள் வணிகத்திற்காக, உங்கள் வருமானம் மற்றும் செலவுகளை கவனமாக கண்காணிக்க நான் பரிந்துரை செய்கிறேன்."
+                }
+                ai_response = fallback_responses.get(language, fallback_responses['en'])
+            
+            # CRITICAL: Validate language purity - NO mixing
+            ai_response = self._enforce_language_purity(ai_response, language)
+            
+            # Save AI response
+            mentor_response = MentorChat.objects.create(
+                device_id=device_id,
+                mentor_id=mentor_id,
+                message=ai_response,
+                message_type='response'
+            )
+            
+            print(f"✅ Mentor response generated: {ai_response[:50]}")
+            
+            return Response({
+                'success': True,
+                'user_message': MentorChatSerializer(user_chat).data,
+                'mentor_response': MentorChatSerializer(mentor_response).data,
+                'ai_generated': True,
+                'language': language,
+                'income_focused': is_income_question,
+                'expense_focused': is_expense_question
+            }, status=status.HTTP_201_CREATED)
+            
         except Exception as e:
+            import traceback
+            print(f"❌ Error in mentor chat: {str(e)}")
+            print(f"Traceback: {traceback.format_exc()}")
             return Response(
-                {'error': 'Error adding mentor chat', 'details': str(e)},
+                {'error': 'Error processing mentor chat', 'details': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+# ==================== MENTOR AI VIEW ====================
+
+class MentorAIView(APIView):
+    """Standalone Mentor AI for business guidance without connecting to specific mentor"""
+    
+    def post(self, request):
+        try:
+            from ml_models.mentor_helper import MentorAIHelper
+            
+            message = request.data.get('message', '').strip()
+            language = request.data.get('language', 'en')
+            device_id = request.data.get('device_id', '')
+            
+            if not message:
+                return Response({'error': 'message required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            print(f"🤖 Mentor AI: Processing question: {message[:50]} in {language}")
+            
+            # Create mentor context for AI Mentor (no specific mentor)
+            mentor_data = {
+                'name': 'Mentor AI',
+                'specializationKey': 'multiple',
+                'expertiseKey': 'all',
+                'experience_years': 15,
+                'bio': 'AI-powered business mentor providing personalized guidance'
+            }
+            
+            # Generate AI response using assistant helper or Gemini
+            ai_response = MentorAIHelper.generate_mentor_response(
+                question=message,
+                mentor_data=mentor_data,
+                language=language,
+                conversation_history=[]
+            )
+            
+            # If AI response generation fails, provide basic response
+            if not ai_response:
+                if language == 'hi':
+                    ai_response = "मुझे इस प्रश्न के बारे में पूरी जानकारी नहीं है। कृपया विस्तार से बताएं।"
+                elif language == 'ta':
+                    ai_response = "இந்த கேள்விக்கு பற்றிய முழுமையான தகவல் எனக்கு இல்லை. தயவு செய்து விস்தாரமாக கூறுங்கள்."
+                else:
+                    ai_response = "I don't have enough information on that. Could you provide more details?"
+            
+            print(f"✅ Mentor AI response generated: {ai_response[:60]}")
+            
+            return Response({
+                'success': True,
+                'message': message,
+                'response': ai_response,
+                'language': language,
+                'mentor': 'AI Mentor'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            import traceback
+            print(f"❌ Error in Mentor AI: {str(e)}")
+            print(f"Traceback: {traceback.format_exc()}")
+            return Response(
+                {'error': 'Error processing Mentor AI request', 'details': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -583,7 +1306,6 @@ class PredictIntentView(APIView):
             'market': ['market', 'price', 'rate', 'mandi', 'சந்தை', 'விலை'],
             'schemes': ['scheme', 'loan', 'government', 'yojana', 'திட்டம்', 'கடன்'],
             'mentor': ['mentor', 'help', 'advice', 'guide', 'ஆலோசனை', 'உதவி'],
-            'payment': ['payment', 'upi', 'transfer', 'bhugtan', 'பணம்', 'பணப்பரிமாற்றம்'],
             'training': ['training', 'learn', 'course', 'skill', 'பயிற்சி', 'கற்றல்'],
         }
 
@@ -604,7 +1326,6 @@ class PredictIntentView(APIView):
                 'market': 'I can show you market prices. Please check the Market Prices section.',
                 'schemes': 'There are several government schemes available for you. Check the Schemes section.',
                 'mentor': 'I can connect you with a business mentor. Check the Mentor section.',
-                'payment': 'I can help you track payments. Please use the Payment section.',
                 'training': 'Training resources are available. Please check the Training section.',
                 'general': 'Hello! I am your business assistant. How can I help you today?',
             },
@@ -616,7 +1337,6 @@ class PredictIntentView(APIView):
                 'market': 'Mandi ke bhav Market section mein dekh sakte hain.',
                 'schemes': 'Sarkar ki yojanayen Schemes section mein dekh sakte hain.',
                 'mentor': 'Mentor se milne ke liye Mentor section mein jayein.',
-                'payment': 'Payment record karne ke liye Payment section use karein.',
                 'training': 'Training ke liye Training section mein jayein.',
                 'general': 'Namaste! Mein aapki business assistant hoon. Kaise madad karoon?',
             },
@@ -628,7 +1348,6 @@ class PredictIntentView(APIView):
                 'market': 'Santhai vilai paarkka Market Prices pakkam sellungal.',
                 'schemes': 'Arasin thittagal Schemes pakkam ullana.',
                 'mentor': 'Aalochanaikku Mentor pakkam sellungal.',
-                'payment': 'Pana parivarthanai paarkka Payment pakkam sellungal.',
                 'training': 'Payirchi paarkka Training pakkam sellungal.',
                 'general': 'Vanakkam! Naan ungal thozhil udhaiviyar. Eppadi udhava vendum?',
             }

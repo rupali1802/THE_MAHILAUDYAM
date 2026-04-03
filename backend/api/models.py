@@ -6,6 +6,19 @@ from django.db import models
 from django.utils import timezone
 import uuid
 
+# Shared choice constants
+TREND_CHOICES = [
+    ('up', 'Up'),
+    ('down', 'Down'),
+    ('stable', 'Stable'),
+]
+
+RECOMMENDATION_CHOICES = [
+    ('buy', 'Buy'),
+    ('sell', 'Sell'),
+    ('hold', 'Hold'),
+]
+
 
 class User(models.Model):
     """Rural women entrepreneur profile - device-based, no login required"""
@@ -146,52 +159,8 @@ class Sales(models.Model):
         return f"Sale: {self.product_name} ₹{self.total_amount} ({self.sale_date})"
 
 
-class Payment(models.Model):
-    """Payment tracking records"""
-    METHOD_CHOICES = [
-        ('upi', 'UPI'),
-        ('cash', 'Cash'),
-        ('bank_transfer', 'Bank Transfer'),
-        ('cheque', 'Cheque'),
-    ]
-    STATUS_CHOICES = [
-        ('success', 'Success'),
-        ('pending', 'Pending'),
-        ('failed', 'Failed'),
-    ]
-    TYPE_CHOICES = [
-        ('received', 'Received'),
-        ('sent', 'Sent'),
-    ]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payments', null=True, blank=True)
-    device_id = models.CharField(max_length=100)
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    method = models.CharField(max_length=20, choices=METHOD_CHOICES, default='upi')
-    payment_type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='received')
-    reference_number = models.CharField(max_length=200, blank=True, default='')
-    party_name = models.CharField(max_length=200, blank=True, default='')
-    description = models.TextField(blank=True, default='')
-    date = models.DateField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='success')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = 'mu_payment'
-        ordering = ['-date', '-created_at']
-
-    def __str__(self):
-        return f"Payment ₹{self.amount} via {self.method} ({self.status})"
-
-
 class MarketPrice(models.Model):
     """Commodity market prices - admin managed"""
-    TREND_CHOICES = [
-        ('up', 'Up'),
-        ('down', 'Down'),
-        ('stable', 'Stable'),
-    ]
     UNIT_CHOICES = [
         ('kg', 'Per KG'),
         ('quintal', 'Per Quintal'),
@@ -221,6 +190,72 @@ class MarketPrice(models.Model):
 
     def __str__(self):
         return f"{self.commodity_name} ₹{self.price}/{self.unit} ({self.market_date})"
+
+
+class PriceHistory(models.Model):
+    """Historical price tracking for trend analysis - automatically updated daily"""
+    commodity_name = models.CharField(max_length=200, db_index=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    unit = models.CharField(max_length=20, default='kg')
+    market_date = models.DateField(db_index=True)
+    market_location = models.CharField(max_length=200, blank=True, default='')
+    source = models.CharField(max_length=200, default='Auto')
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'mu_price_history'
+        ordering = ['-market_date', 'commodity_name']
+        indexes = [
+            models.Index(fields=['commodity_name', '-market_date']),
+        ]
+
+    def __str__(self):
+        return f"{self.commodity_name} ₹{self.price} ({self.market_date})"
+
+
+class MarketPriceAnalysis(models.Model):
+    """Real-time market analysis and trends"""
+    ANALYSIS_TYPE_CHOICES = [
+        ('trend', 'Trend Analysis'),
+        ('volatility', 'Volatility'),
+        ('momentum', 'Momentum'),
+        ('seasonal', 'Seasonal'),
+    ]
+
+    commodity_name = models.CharField(max_length=200, db_index=True)
+    analysis_date = models.DateField(auto_now_add=True, db_index=True)
+    
+    # Price metrics (7-day)
+    current_price = models.DecimalField(max_digits=10, decimal_places=2)
+    avg_price_7d = models.DecimalField(max_digits=10, decimal_places=2)
+    min_price_7d = models.DecimalField(max_digits=10, decimal_places=2)
+    max_price_7d = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    # Price metrics (30-day)
+    avg_price_30d = models.DecimalField(max_digits=10, decimal_places=2)
+    min_price_30d = models.DecimalField(max_digits=10, decimal_places=2)
+    max_price_30d = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    # Trend analysis
+    trend = models.CharField(max_length=10, choices=TREND_CHOICES, default='stable')
+    trend_percentage = models.DecimalField(max_digits=7, decimal_places=2)  # Weekly change percentage
+    momentum_score = models.DecimalField(max_digits=5, decimal_places=2)  # -100 to +100
+    volatility_score = models.DecimalField(max_digits=5, decimal_places=2)  # 0-100
+    
+    # Analysis
+    analysis_type = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES, default='trend')
+    insights = models.TextField(blank=True, default='')
+    recommendation = models.CharField(max_length=20, choices=RECOMMENDATION_CHOICES, default='hold')
+    
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'mu_market_price_analysis'
+        ordering = ['-analysis_date', 'commodity_name']
+        unique_together = ['commodity_name', 'analysis_date']
+
+    def __str__(self):
+        return f"{self.commodity_name} Analysis ({self.analysis_date})"
 
 
 class Scheme(models.Model):

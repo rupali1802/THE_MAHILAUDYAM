@@ -164,36 +164,47 @@ class IntentPredictor:
     def _rule_based_fallback(self, text, reason=""):
         """Rule-based fallback for when ML model is unavailable or low confidence"""
         text_lower = text.lower()
+        
+        # STRICT keyword mapping - no overlaps
         keywords = {
-            'income': ['income', 'earning', 'received', 'aay', 'varumanam', 'mila', 'kamai', 'padhivu', 'earni'],
-            'expense': ['expense', 'spent', 'kharcha', 'selavu', 'paid', 'pay', 'bill', 'diya'],
-            'sales': ['sale', 'sold', 'vikri', 'vittirkai', 'becha', 'sell', 'customer', 'khareed'],
-            'profit': ['profit', 'laabh', 'laabham', 'loss', 'nuksan', 'earn', 'minus', 'kamai'],
-            'market': ['market', 'price', 'rate', 'mandi', 'santhai', 'vilai', 'bhav', 'commodity', 'current'],
-            'schemes': ['scheme', 'yojana', 'thittam', 'loan', 'government', 'subsidy', 'eligible', 'benefit'],
-            'mentor': ['mentor', 'advice', 'help', 'aalochanai', 'salah', 'expert', 'connect', 'guidance'],
-            'payment': ['payment', 'upi', 'transfer', 'cash', 'parivarthanai', 'thilam', 'method', 'paid'],
-            'training': ['training', 'learn', 'payirchi', 'seekhna', 'skill', 'course', 'improve', 'digital'],
+            'income': ['income', 'earning', 'earned', 'received', 'aay', 'varumanam', 'mila', 'kamai', 'padhivu', 'earned', 'get', 'earn', 'revenue', 'sales', 'sold', 'sell'],
+            'expense': ['expense', 'spent', 'kharcha', 'selavu', 'cost', 'bill', 'monthly charges', 'material', 'raw', 'rent', 'power', 'water', 'diya'],
+            'profit': ['profit', 'laabh', 'laabham', 'net', 'return', 'margin', 'difference'],
+            'loss': ['loss', 'nuksan', 'decline', 'reduction', 'reduced', 'decreased'],
+            'market': ['market', 'price', 'rate', 'mandi', 'santhai', 'vilai', 'bhav', 'commodity', 'current', 'trend', 'demand', 'supply'],
+            'schemes': ['scheme', 'yojana', 'thittam', 'loan', 'government', 'subsidy', 'eligible', 'benefit', 'women', 'mahila', 'stree', 'farmer', 'kisaan', 'kisan', 'grant', 'financial', 'support', 'package', 'pmmy', 'mudra', 'sidbi', 'credit', 'advance'],
+            'mentor': ['mentor', 'advice', 'help', 'aalochanai', 'salah', 'expert', 'connect', 'guidance', 'consult', 'suggestion', 'how to', 'tip', 'strategy'],
+            'payment': ['payment', 'upi', 'transfer', 'cash', 'parivarthanai', 'thilam', 'method', 'transaction', 'digital'],
+            'training': ['training', 'learn', 'payirchi', 'seekhna', 'skill', 'course', 'improve', 'digital', 'develop', 'class', 'workshop', 'session'],
         }
         
-        best_intent = 'income'
-        best_score = 0
-        
+        # Calculate scores for each intent
+        intent_scores = {}
         for intent, kws in keywords.items():
             score = sum(1 for kw in kws if kw in text_lower)
-            if score > best_score:
-                best_score = score
-                best_intent = intent
-
+            intent_scores[intent] = score
+        
+        # Get the intent with the highest score
+        best_intent = max(intent_scores, key=intent_scores.get)
+        best_score = intent_scores[best_intent]
+        
+        # STRICT RULE: If income keywords are found AND expense/cost keywords are also found,
+        # but income has priority (more keywords matched), then it's income
+        # This prevents mixing income with expenses
+        if best_intent == 'income' and intent_scores.get('expense', 0) > 0:
+            # Income takes priority if income keywords are stronger
+            if best_score >= intent_scores.get('expense', 0):
+                print(f"✅ Prioritizing INCOME over expense keywords (income score: {best_score}, expense score: {intent_scores.get('expense', 0)})")
+        
         # Confidence based on keyword match strength
         if best_score >= 2:
-            confidence = 0.80
+            confidence = 0.85
         elif best_score == 1:
-            confidence = 0.60
+            confidence = 0.65
         else:
             confidence = 0.40
         
-        print(f"📋 Rule-based prediction: {best_intent} (score: {best_score}, reason: {reason})")
+        print(f"📋 Rule-based prediction: {best_intent} (score: {best_score}, all scores: {intent_scores}, reason: {reason})")
         
         return {
             'intent': best_intent,

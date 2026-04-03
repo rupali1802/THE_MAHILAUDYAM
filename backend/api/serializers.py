@@ -2,7 +2,10 @@
 Mahila Udyam - Django REST Framework Serializers
 """
 from rest_framework import serializers
-from .models import User, Income, Expense, Sales, Payment, MarketPrice, Scheme, Mentor, MentorChat
+from .models import (
+    User, Income, Expense, Sales, MarketPrice, Scheme, Mentor, MentorChat,
+    PriceHistory, MarketPriceAnalysis
+)
 from datetime import date
 
 
@@ -73,12 +76,6 @@ class SalesSerializer(serializers.ModelSerializer):
         return data
 
 
-class PaymentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Payment
-        fields = '__all__'
-
-
 class MarketPriceSerializer(serializers.ModelSerializer):
     class Meta:
         model = MarketPrice
@@ -118,3 +115,26 @@ class ProfitSummarySerializer(serializers.Serializer):
     income_count = serializers.IntegerField()
     expense_count = serializers.IntegerField()
     daily_average_profit = serializers.DecimalField(max_digits=12, decimal_places=2)
+
+
+class PriceHistorySerializer(serializers.ModelSerializer):
+    """Serializer for historical price data"""
+    class Meta:
+        model = PriceHistory
+        fields = ['id', 'commodity_name', 'price', 'unit', 'market_date', 
+                  'market_location', 'source', 'recorded_at']
+        read_only_fields = ['recorded_at']
+
+
+class MarketPriceAnalysisSerializer(serializers.ModelSerializer):
+    """Serializer for market price analysis and trends"""
+    class Meta:
+        model = MarketPriceAnalysis
+        fields = [
+            'id', 'commodity_name', 'analysis_date', 
+            'current_price', 'avg_price_7d', 'min_price_7d', 'max_price_7d',
+            'avg_price_30d', 'min_price_30d', 'max_price_30d',
+            'trend', 'trend_percentage', 'momentum_score', 'volatility_score',
+            'analysis_type', 'insights', 'recommendation', 'updated_at'
+        ]
+        read_only_fields = ['analysis_date', 'updated_at']

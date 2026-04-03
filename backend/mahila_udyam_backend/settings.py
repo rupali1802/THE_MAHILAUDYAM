@@ -3,14 +3,18 @@ Django settings for Mahila Udyam Backend
 """
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-mahila-udyam-secret-key-change-in-production-2024'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-mahila-udyam-secret-key-change-in-production-2024')
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -55,35 +59,49 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mahila_udyam_backend.wsgi.application'
 
-# Database - Using SQLite for development
-# To use MySQL, set USE_MYSQL=True environment variable and ensure MySQL is running
-import os
-USE_MYSQL = os.getenv('USE_MYSQL', 'False') == 'True'
-USE_MYSQL = False  # SQLite for dev (MySQL requires 8+ but server is 5.7.44)
+# Database Configuration - Read from .env file
+DB_ENGINE = os.getenv('DB_ENGINE', 'django.db.backends.mysql')
+DB_NAME = os.getenv('DB_NAME', 'mahila_udyam')
+DB_USER = os.getenv('DB_USER', 'root')
+DB_PASSWORD = os.getenv('DB_PASSWORD', '')
+DB_HOST = os.getenv('DB_HOST', '127.0.0.1')
+DB_PORT = os.getenv('DB_PORT', '3306')
 
-if USE_MYSQL:
+# Configure database based on ENGINE
+if 'mysql' in DB_ENGINE.lower():
     # MySQL configuration
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'mahila_udyam',
-            'USER': 'root',
-            'PASSWORD': 'Rupa@180206P',
-            'HOST': '127.0.0.1',
-            'PORT': '3306',
+            'ENGINE': DB_ENGINE,
+            'NAME': DB_NAME,
+            'USER': DB_USER,
+            'PASSWORD': DB_PASSWORD,
+            'HOST': DB_HOST,
+            'PORT': DB_PORT,
             'OPTIONS': {
                 'charset': 'utf8mb4',
             },
         }
     }
+    print("✅ Using MySQL Database")
+elif 'sqlite' in DB_ENGINE.lower():
+    # SQLite configuration
+    DATABASES = {
+        'default': {
+            'ENGINE': DB_ENGINE,
+            'NAME': BASE_DIR / DB_NAME,
+        }
+    }
+    print("✅ Using SQLite Database")
 else:
-    # SQLite for development (default)
+    # Fallback to SQLite
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+    print("⚠️  Unknown database engine, using SQLite fallback")
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

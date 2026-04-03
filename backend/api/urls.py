@@ -26,12 +26,13 @@ urlpatterns = [
     # Profit
     path('profit/', views.ProfitView.as_view(), name='profit'),
 
-    # Payment
-    path('payment/', views.PaymentListView.as_view(), name='payment-list'),
-    path('payment/add/', views.PaymentAddView.as_view(), name='payment-add'),
-
     # Market Prices
     path('market-prices/', views.MarketPriceListView.as_view(), name='market-prices'),
+    path('market-analysis/', views.MarketAnalysisView.as_view(), name='market-analysis'),
+    path('price-history/', views.PriceHistoryView.as_view(), name='price-history'),
+    path('price-trends/', views.PriceTrendsView.as_view(), name='price-trends'),
+    path('market-comparative/', views.MarketComparativeAnalysisView.as_view(), name='market-comparative'),
+    path('market-realtime/', views.RealtimeMarketAnalysisView.as_view(), name='market-realtime'),
 
     # Schemes
     path('schemes/', views.SchemeListView.as_view(), name='schemes'),
@@ -39,6 +40,7 @@ urlpatterns = [
     # Mentors
     path('mentors/', views.MentorListView.as_view(), name='mentors'),
     path('mentor-chat/', views.MentorChatView.as_view(), name='mentor-chat'),
+    path('mentor-ai/', views.MentorAIView.as_view(), name='mentor-ai'),
 
     # Voice / ML
     path('predict-intent/', views.PredictIntentView.as_view(), name='predict-intent'),

@@ -6,11 +6,9 @@ import {
   TrendingUp,
   TrendingDown,
   ShoppingCart,
-  Compass,
   Mic,
   BarChart3,
   Store,
-  Wallet,
   ClipboardList,
   Users,
 } from 'lucide-react';
@@ -48,11 +46,6 @@ const BottomNav = () => {
       icon: ShoppingCart,
     },
     {
-      path: '/market',
-      label: 'bottomNav.navigator',
-      icon: Compass,
-    },
-    {
       path: '/voice',
       label: 'bottomNav.voice',
       icon: Mic,
@@ -63,14 +56,9 @@ const BottomNav = () => {
       icon: BarChart3,
     },
     {
-      path: '/market-prices',
+      path: '/market',
       label: 'bottomNav.market',
       icon: Store,
-    },
-    {
-      path: '/payment',
-      label: 'bottomNav.budget',
-      icon: Wallet,
     },
     {
       path: '/schemes',

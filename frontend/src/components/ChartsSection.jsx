@@ -6,33 +6,37 @@ import {
 import { useLanguage } from '../hooks/useLanguage';
 
 export default function ChartsSection({ summary }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  
+  const monthNames = language === 'ta' ? ['ஜனவரி', 'பிப்ரவரி', 'மார்ச்', 'ஏப்ரல்', 'மே', 'ஜூன்'] : language === 'hi' ? ['जनवरी', 'फरवरी', 'मार्च', 'अप्रैल', 'मई', 'जून'] : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+  const dayNames = language === 'ta' ? ['திங்கட்', 'செவ்வாய்', 'புதன்', 'வியாழன்', 'வெள்ளி', 'சனி', 'ஞாயிறு'] : language === 'hi' ? ['सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि', 'रवि'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  
   // Pie chart data for expense categories
   const expenseData = [
-    { name: 'Fixed Costs', value: (summary?.monthly_expense || 0) * 0.4 },
-    { name: 'Variable Costs', value: (summary?.monthly_expense || 0) * 0.35 },
-    { name: 'Other', value: (summary?.monthly_expense || 0) * 0.25 }
+    { name: t('dashboard.expenseCategories') + ' 1', value: (summary?.monthly_expense || 0) * 0.4 },
+    { name: t('dashboard.expenseCategories') + ' 2', value: (summary?.monthly_expense || 0) * 0.35 },
+    { name: t('common.other'), value: (summary?.monthly_expense || 0) * 0.25 }
   ];
 
   // Line chart data for sales trend
   const salesTrendData = [
-    { date: 'Mon', sales: (summary?.today_income || 0) * 0.6 },
-    { date: 'Tue', sales: (summary?.today_income || 0) * 0.8 },
-    { date: 'Wed', sales: (summary?.today_income || 0) * 1.2 },
-    { date: 'Thu', sales: (summary?.today_income || 0) * 0.9 },
-    { date: 'Fri', sales: (summary?.today_income || 0) * 1.5 },
-    { date: 'Sat', sales: (summary?.today_income || 0) * 1.3 },
-    { date: 'Sun', sales: (summary?.today_income || 0) * 1.1 }
+    { date: dayNames[0], sales: (summary?.today_income || 0) * 0.6 },
+    { date: dayNames[1], sales: (summary?.today_income || 0) * 0.8 },
+    { date: dayNames[2], sales: (summary?.today_income || 0) * 1.2 },
+    { date: dayNames[3], sales: (summary?.today_income || 0) * 0.9 },
+    { date: dayNames[4], sales: (summary?.today_income || 0) * 1.5 },
+    { date: dayNames[5], sales: (summary?.today_income || 0) * 1.3 },
+    { date: dayNames[6], sales: (summary?.today_income || 0) * 1.1 }
   ];
 
   // Monthly profit trend
   const profitTrendData = [
-    { month: 'Jan', profit: (summary?.monthly_income || 0) * 0.7 - (summary?.monthly_expense || 0) * 0.6 },
-    { month: 'Feb', profit: (summary?.monthly_income || 0) * 0.8 - (summary?.monthly_expense || 0) * 0.65 },
-    { month: 'Mar', profit: (summary?.monthly_income || 0) * 0.9 - (summary?.monthly_expense || 0) * 0.7 },
-    { month: 'Apr', profit: (summary?.monthly_income || 0) * 1.1 - (summary?.monthly_expense || 0) * 0.75 },
-    { month: 'May', profit: (summary?.monthly_income || 0) * 1.2 - (summary?.monthly_expense || 0) * 0.8 },
-    { month: 'Jun', profit: (summary?.monthly_income || 0) - (summary?.monthly_expense || 0) },
+    { month: monthNames[0], profit: (summary?.monthly_income || 0) * 0.7 - (summary?.monthly_expense || 0) * 0.6 },
+    { month: monthNames[1], profit: (summary?.monthly_income || 0) * 0.8 - (summary?.monthly_expense || 0) * 0.65 },
+    { month: monthNames[2], profit: (summary?.monthly_income || 0) * 0.9 - (summary?.monthly_expense || 0) * 0.7 },
+    { month: monthNames[3], profit: (summary?.monthly_income || 0) * 1.1 - (summary?.monthly_expense || 0) * 0.75 },
+    { month: monthNames[4], profit: (summary?.monthly_income || 0) * 1.2 - (summary?.monthly_expense || 0) * 0.8 },
+    { month: monthNames[5], profit: (summary?.monthly_income || 0) - (summary?.monthly_expense || 0) },
   ];
 
   const colors = ['#22C55E', '#F59E0B', '#EF4444'];
@@ -79,8 +83,8 @@ export default function ChartsSection({ summary }) {
               }}
             />
             <Legend />
-            <Bar dataKey="income" fill="#22C55E" radius={[8, 8, 0, 0]} />
-            <Bar dataKey="expense" fill="#EF4444" radius={[8, 8, 0, 0]} />
+            <Bar dataKey="income" name={t('nav.income')} fill="#22C55E" radius={[8, 8, 0, 0]} />
+            <Bar dataKey="expense" name={t('nav.expense')} fill="#EF4444" radius={[8, 8, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -193,7 +197,7 @@ export default function ChartsSection({ summary }) {
           color: '#1F2937',
           fontFamily: 'Poppins, sans-serif'
         }}>
-          Weekly Sales Trend
+          {t('dashboard.monthlySales') || 'Weekly Sales Trend'}
         </h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={salesTrendData}>

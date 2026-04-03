@@ -1,7 +1,7 @@
 import { getDeviceId } from '../utils/device';
 
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
-const TIMEOUT = 30000;
+const TIMEOUT = 30000; // Increased to 30s for ML model loading
 
 /**
  * Helper to build query string from params object
@@ -118,19 +118,19 @@ export const deleteSale = (id) => deleteReq(`/sales/${id}/`);
 // Profit
 export const getProfit = (period = 'monthly') => get('/profit/', { params: { period } });
 
-// Payment
-export const getPayments = () => get('/payment/');
-export const addPayment = (data) => post('/payment/add/', data);
-
 // Market Prices
 export const getMarketPrices = (commodity = '') => get('/market-prices/', { params: { commodity } });
+export const getPriceHistory = (commodity, days = 30) => get('/price-history/', { params: { commodity, days } });
+export const getPriceTrends = (commodity) => get('/price-trends/', { params: { commodity } });
+export const getMarketComparative = (commodity) => get('/market-comparative/', { params: { commodity } });
+export const getRealtimeMarketAnalysis = () => get('/market-realtime/');
 
 // Schemes
-export const getSchemes = (category = '') => get('/schemes/', { params: { category } });
+export const getSchemes = (category = '', language = 'en') => get('/schemes/', { params: { category, language } });
 
 // Mentors
-export const getMentors = () => get('/mentors/');
-export const getMentorChats = (mentorId) => get('/mentor-chat/', { params: { mentor_id: mentorId } });
+export const getMentors = (language = 'en') => get('/mentors/', { params: { language } });
+export const getMentorChats = (mentorId, language = 'en', deviceId = '') => get('/mentor-chat/', { params: { mentor_id: mentorId, language, device_id: deviceId } });
 export const sendMentorMessage = (data) => post('/mentor-chat/', data);
 
 // User Profile

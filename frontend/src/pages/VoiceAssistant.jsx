@@ -42,6 +42,7 @@ export default function VoiceAssistant() {
   
   // State management
   const [transcript, setTranscript] = useState('');
+  const [textInput, setTextInput] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -64,6 +65,17 @@ export default function VoiceAssistant() {
       stopSpeech();
     };
   }, []);
+
+  /**
+   * Handle text input submission
+   */
+  const handleTextSubmit = (e) => {
+    e.preventDefault();
+    if (textInput.trim()) {
+      processText(textInput);
+      setTextInput('');
+    }
+  };
 
   /**
    * Process voice input and send to backend
@@ -227,6 +239,89 @@ export default function VoiceAssistant() {
       {/* Subtitle */}
       <div style={{ textAlign: 'center', marginBottom: '24px', color: 'var(--gray-700)' }}>
         <p style={{ fontSize: 'var(--font-base)', margin: '0', fontWeight: 500 }}>{t('voice.speakingSubtitle')}</p>
+      </div>
+
+      {/* Text Input Option */}
+      <div className="card card-interactive" style={{ animation: 'slideUp 0.25s ease', marginBottom: '24px' }}>
+        <div className="card-body">
+          <form onSubmit={handleTextSubmit}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: 'var(--font-sm)',
+                  fontWeight: 600,
+                  marginBottom: '8px',
+                  color: 'var(--gray-900)'
+                }}>
+                  📝 {t('voice.tapToSpeak') || 'Type or Say'}
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    value={textInput}
+                    onChange={(e) => setTextInput(e.target.value)}
+                    placeholder={
+                      {
+                        en: "Type your command... e.g., 'Record income 500'",
+                        hi: "अपनी आज्ञा दें... उदा. '500 की आय रिकॉर्ड करो'",
+                        ta: "உங்கள் கட்டளை வகை செய்யவும்... எ.கா., '500 வருமானம் பதிவு செய்'",
+                      }[lang] || "Type your command..."
+                    }
+                    style={{
+                      flex: 1,
+                      padding: '12px 14px',
+                      borderRadius: 'var(--radius-md)',
+                      border: '2px solid var(--primary-200)',
+                      fontSize: 'var(--font-base)',
+                      fontFamily: 'inherit',
+                      transition: 'all 0.2s ease',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'var(--primary)';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(147, 51, 234, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'var(--primary-200)';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                    disabled={loading || speaking}
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading || speaking || !textInput.trim()}
+                    style={{
+                      padding: '12px 20px',
+                      background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 'var(--radius-md)',
+                      fontWeight: 700,
+                      cursor: loading || speaking ? 'not-allowed' : 'pointer',
+                      opacity: loading || speaking || !textInput.trim() ? 0.5 : 1,
+                      transition: 'all 0.2s ease',
+                      fontSize: 'var(--font-sm)',
+                      whiteSpace: 'nowrap',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!loading && !speaking && textInput.trim()) {
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 8px 16px rgba(147, 51, 234, 0.3)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  >
+                    {loading ? '⏳' : '✓ Send'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
 
       {/* Main Voice Card with Microphone */}

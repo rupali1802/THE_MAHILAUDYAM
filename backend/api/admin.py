@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Income, Expense, Sales, Payment, MarketPrice, Scheme, Mentor, MentorChat
+from .models import User, Income, Expense, Sales, MarketPrice, Scheme, Mentor, MentorChat
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -24,11 +24,6 @@ class SalesAdmin(admin.ModelAdmin):
     list_display = ['device_id', 'product_name', 'quantity', 'total_amount', 'sale_date', 'status']
     list_filter = ['status', 'sale_date']
     search_fields = ['device_id', 'product_name', 'customer_name']
-
-@admin.register(Payment)
-class PaymentAdmin(admin.ModelAdmin):
-    list_display = ['device_id', 'amount', 'method', 'payment_type', 'status', 'date']
-    list_filter = ['method', 'status', 'payment_type']
 
 @admin.register(MarketPrice)
 class MarketPriceAdmin(admin.ModelAdmin):

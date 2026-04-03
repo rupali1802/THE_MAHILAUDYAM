@@ -1,0 +1,297 @@
+/* Market Analytics Component Styles */
+
+.market-analytics {
+  width: 100%;
+  max-width: 100%;
+}
+
+.analytics-tab-nav {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 12px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+.analytics-tab-nav::-webkit-scrollbar {
+  height: 4px;
+}
+
+.analytics-tab-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.analytics-tab-nav::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+.analytics-tab-button {
+  padding: 8px 16px;
+  background: transparent;
+  color: #6b7280;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.analytics-tab-button:hover {
+  background: #f3f4f6;
+}
+
+.analytics-tab-button.active {
+  background: #3b82f6;
+  color: white;
+}
+
+.analytics-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.analytics-summary-card {
+  background: white;
+  padding: 16px;
+  border-radius: 10px;
+  border-left: 4px solid;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.analytics-summary-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.analytics-summary-card.trending-up {
+  border-left-color: #10b981;
+}
+
+.analytics-summary-card.trending-down {
+  border-left-color: #ef4444;
+}
+
+.analytics-summary-card.stable {
+  border-left-color: #f59e0b;
+}
+
+.analytics-summary-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.analytics-summary-value {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.analytics-opportunity-card {
+  background: white;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  margin-bottom: 12px;
+}
+
+.analytics-opportunity-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
+}
+
+.analytics-commodity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.analytics-commodity-card {
+  background: white;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.analytics-commodity-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+}
+
+.analytics-price-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 150px;
+  gap: 4px;
+  background: white;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.analytics-chart-bar {
+  background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%);
+  border-radius: 4px 4px 0 0;
+  flex: 1;
+  min-height: 5px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.analytics-chart-bar:hover {
+  background: linear-gradient(180deg, #2563eb 0%, #1e3a8a 100%);
+  opacity: 0.9;
+}
+
+.analytics-statistics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.analytics-stat-box {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.analytics-stat-label {
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.analytics-stat-value {
+  font-size: 18px;
+  font-weight: bold;
+  color: #111827;
+}
+
+.analytics-recommendation {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 11px;
+  text-align: center;
+  width: 100%;
+}
+
+.recommendation-buy {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.recommendation-sell {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.recommendation-hold {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .analytics-commodity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .analytics-tab-nav {
+    gap: 8px;
+  }
+
+  .analytics-price-chart {
+    height: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .analytics-summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-opportunity-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .analytics-commodity-card {
+    padding: 12px;
+  }
+
+  .analytics-summary-label {
+    font-size: 11px;
+  }
+
+  .analytics-summary-value {
+    font-size: 20px;
+  }
+}
+
+/* Loading State */
+.analytics-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.analytics-loading-spinner {
+  font-size: 32px;
+  margin-bottom: 12px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.analytics-commodity-card {
+  animation: slideUp 0.3s ease-out;
+}

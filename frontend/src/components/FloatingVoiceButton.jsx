@@ -44,7 +44,7 @@ export default function FloatingVoiceButton() {
             letterSpacing: '1px'
           }}
         >
-          SAKHI {t('voice.assistant') || 'AI Assistant'}
+          {t('voice.assistant') || 'SAKHI AI'}
         </div>
 
         {/* Main Voice Button */}
@@ -86,7 +86,7 @@ export default function FloatingVoiceButton() {
               textTransform: 'uppercase',
               letterSpacing: '0.5px'
             }}>
-              SAKHI
+              {t('voice.assistant')}
             </div>
           </div>
         </button>
